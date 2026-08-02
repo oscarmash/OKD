@@ -1,0 +1,24 @@
+apiVersion: v1
+baseDomain: ilba.cat
+metadata:
+  name: okd
+compute:
+- hyperthreading: Enabled
+  name: worker
+  replicas: 2
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+platform:
+  vsphere:
+    vCenter: vcsa.ilba.cat
+    username: administrator@vsphere.local
+    password: 'C@dinor1988'
+    datacenter: HomeLab
+    defaultDatastore: stg-1500GB
+    network: OKD-Private-Network
+    cluster: esxi-r630.ilba.cat
+fips: false
+pullSecret: '{"auths":{"fake":{"auth":"aG9sYTo="}}}'
+sshKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDTJTZqNroyGCfl14OvwUS3MOBAVaIAS5xYNaK7p+UtQ8g23fRW0S3l98eZznI3gvDz5dZLjAzdcLtXbMU1DdrzrK8wpaxsWOYhzgWjk40p5gxLTC+7kdu/yNuN6PV+7h9UIE/xOtDK+jb2faMjj1uIT+coDRStzGiVCaPps8M5UT7byDhXCZR9Dgm5RYZfD1DuEMzh+wjrkwBKM/6g+JD54UfqU4xTdYoNoKXImOKR8rgCUbt5IfwMGt1pC6uvlA9KaUv7iWDV7qVlroRE1Ixz99wzwWaOHbf7ul6X0mCl2mIoPHKwCCBGOu5Y6KyejrO6bFB2vIdCv2Q59EoGVZj5VltcMQpNQGyHzhtx2yXNFOINodMQrs/oTZt6947WbZmYb2zP9TOVmvQhhxdyZPf3LaqXGbhvLvpZTvgITRhH0HhRRE13ss8gVbdm2ZpaQFKcou3f1i/DCO46AEAXIrcD8Lkf3DbakGJxJwdfx24ge5GYmHBL+BDvQG1M9DTqvOmwleVYIIgofv3V1lZJBQnak+qi11rUCJZa3rlxXOIM9jaedBeH4TMu5ptgr1638suzT5kiuHxWrJzq4DKdw3UEyBI+p7BDMl7Tydq3x1i2Yl91KpB3iVQo2IK/jvq3f4Vsk+vr9owtLGuUUnpriQU4zuhl+1W823fDKXqriMUSNw== root@bastion.ilba.cat'

@@ -1,0 +1,26 @@
+$TTL 1D
+@       IN SOA   bastion.ilba.cat. admin.ilba.cat. (
+                        2026072202      ; serial
+                        1D              ; refresh
+                        1H              ; retry
+                        1W              ; expire
+                        3H )            ; minimum
+
+@       IN NS    bastion.ilba.cat.
+
+; --- Registros PTR (último octeto de la IP 10.26.0.X) ---
+
+; Bastion (10.26.0.5)
+5       IN PTR   bastion.ilba.cat.
+
+; Bootstrap (10.26.0.10)
+10      IN PTR   bootstrap.ilba.cat.
+
+; Masters
+11      IN PTR   master1.ilba.cat.
+12      IN PTR   master2.ilba.cat.
+13      IN PTR   master3.ilba.cat.
+
+; Workers
+21      IN PTR   worker1.ilba.cat.
+22      IN PTR   worker2.ilba.cat.
