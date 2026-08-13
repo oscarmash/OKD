@@ -1,6 +1,6 @@
 $TTL 1D
 @       IN SOA   bastion.ilba.cat. admin.ilba.cat. (
-                        2026073102      ; serial
+                        2026073103      ; serial
                         1D              ; refresh
                         1H              ; retry
                         1W              ; expire
@@ -35,4 +35,4 @@ api-int.okd    IN A    10.26.0.5
 
 ; --- Virtual Center ---
 vcsa           IN A    172.26.0.3
-esxi-r630      IN A    172.26.0.6
+;esxi-r630      IN A    172.26.0.6

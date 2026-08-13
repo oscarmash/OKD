@@ -436,7 +436,7 @@ openshift-install create cluster --dir=cluster-okd --log-level=info
 
 
 [root@bastion ~]# cat /root/cluster-okd/auth/kubeadmin-password
-9P9gF-768cI-EL5nd-wNKPb
+i62yI-b8w8b-toW6G-uNPKk
 
 [root@bastion ~]# oc get route console -n openshift-console
 NAME      HOST/PORT                                     PATH   SERVICES   PORT    TERMINATION          WILDCARD
@@ -465,16 +465,29 @@ NAME                                       READY   STATUS    RESTARTS   AGE
 authentication-operator-766d9779d4-dcttf   1/1     Running   0          17m
 
 [root@bastion ~]# oc get co authentication
-NAME             VERSION                          AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
-authentication   4.15.0-0.okd-2024-03-10-010116   True        False         False      22s
+NAME             VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
+authentication   4.21.0-okd-scos.9   True        False         False      3d21h
 
 # si falla algo:
 
-[root@bastion ~]# oc delete pods --all -n openshift-authentication
-[root@bastion ~]# oc delete pod -n openshift-authentication-operator --all
+[root@bastion ~]# oc rollout restart deployment/oauth-openshift -n openshift-authentication
+[root@bastion ~]# oc rollout restart deployment/console -n openshift-console
 
-[root@bastion ~]# oc delete pods -n openshift-authentication --grace-period=0 --force
-[root@bastion ~]# oc delete pods -n openshift-authentication-operator --grace-period=0 --force
+[root@bastion ~]# oc delete pods --all -n openshift-authentication --grace-period=0 --force
+[root@bastion ~]# oc delete pod -n openshift-authentication-operator --all --grace-period=0 --force
+
+# Otro error
+
+[root@bastion ~]# oc get route console -n openshift-console
+error: the server doesn't have a resource type "route"
+
+[root@bastion ~]# oc get apiservice v1.route.openshift.io
+NAME                    SERVICE                   AVAILABLE                      AGE
+v1.route.openshift.io   openshift-apiserver/api   False (FailedDiscoveryCheck)   3d23h
+
+[root@bastion ~]# oc get csr | grep -i pending
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
