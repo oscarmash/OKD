@@ -1,3 +1,14 @@
+# Índice
+
+* [Verificación y Resolución de Problemas de la Consola Web (OKD)](#verificación-y-resolución-de-problemas-de-la-consola-web-okd)
+  * [Credenciales y Acceso a la GUI](#credenciales-y-acceso-a-la-gui)
+    * [Obtener contraseña del usuario "kubeadmin"](#obtener-contraseña-del-usuario-kubeadmin)
+    * [Obtener la URL de la Consola Web](#obtener-la-url-de-la-consola-web)
+  * [Verificación de Componentes de Interfaz y Autenticación](#verificación-de-componentes-de-interfaz-y-autenticación)
+  * [Procedimientos de Troubleshooting](#procedimientos-de-troubleshooting)
+    * [La Consola o el OAuth se quedan bloqueados](#la-consola-o-el-oauth-se-quedan-bloqueados)
+    * [Error the server doesn't have a resource type "route"](#error-the-server-doesnt-have-a-resource-type-route)
+
 # Verificación y Resolución de Problemas de la Consola Web (OKD)
 
 ## Credenciales y Acceso a la GUI

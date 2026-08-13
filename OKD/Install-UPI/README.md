@@ -1,10 +1,30 @@
-# Guía de Instalación OKD Bare-metal / UPI
+## Índice
 
-## Concepto UPI
+* [Guía de Instalación OKD Bare-metal / UPI](#guía-de-instalación-okd-bare-metal--upi)
+  * [Concepto UPI](#concepto-upi)
+  * [Arquitectura del Clúster](#arquitectura-del-Clúster)
+  * [Especificaciones de Nodos OKD / OpenShift](#especificaciones-de-nodos-okd--openshift)
+  * [Estimación de Tráfico de Red (Instalación Bare-metal / UPI)](#estimación-de-tráfico-de-red-instalación-bare-metal--upi)
+* [Preparación del Servidor Bastión](#preparación-del-servidor-bastión)
+  * [Instalación de Servicios Base](#instalación-de-servicios-base)
+* [Despliegue de OKD](#despliegue-de-okd)
+  * [Instalación del Nodo Bootstrap](#instalación-del-nodo-bootstrap)
+      * [Obtención de la ISO de SCOS / CoreOS](#obtención-de-la-iso-de-scos--coreos)
+    * [Instalación en el Nodo Bootstrap](#instalación-en-el-nodo-bootstrap)
+    * [Monitorización del Nodo Bootstrap](#monitorización-del-nodo-bootstrap)
+  * [Instalación de Nodos Masters (Control Plane)](#instalación-de-nodos-masters-control-plane)
+    * [Aprobación de Certificados y Taints Iniciales](#aprobación-de-certificados-y-taints-iniciales)
+  * [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
+    * [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
+
+
+## Guía de Instalación OKD Bare-metal / UPI
+
+### Concepto UPI
 
 UPI (User-Provisioned Infrastructure) -> El administrador crea y gestiona manualmente toda la infraestructura: redes, balanceador de carga como HAProxy, registros DNS en Bind/Unbound, almacenamiento y las propias máquinas virtuales en vCenter o servidores físicos
 
-## Arquitectura del Clúster
+### Arquitectura del Clúster
 
 ![Esquema de Red y Nodos](images/Esquema.png)
 
@@ -120,16 +140,16 @@ dig +short -x 10.26.0.10 @127.0.0.1         -> bootstrap.ilba.cat.
 dig +short -x 10.26.0.21 @127.0.0.1         -> worker1.ilba.cat.
 ```
 
-## Instalación del Nodo Bootstrap
+### Instalación del Nodo Bootstrap
 
-### Obtención de la ISO de SCOS / CoreOS
+#### Obtención de la ISO de SCOS / CoreOS
 
 ```
 [root@bastion ~]# openshift-install coreos print-stream-json | jq -r '.architectures.x86_64.artifacts.metal.formats.iso.disk.location'
 https://rhcos.mirror.openshift.com/art/storage/prod/streams/c10s/builds/10.0.20251103-0/x86_64/scos-10.0.20251103-0-live-iso.x86_64.iso
 ```
 
-### Instalación en el Nodo Bootstrap
+#### Instalación en el Nodo Bootstrap
 
 Arrancamos bootstrap (recuerda que es un equipo temporal) y lanzamos el siguiente comando:
 
@@ -141,7 +161,7 @@ sudo coreos-installer install /dev/sda \
 sudo reboot
 ```
 
-### Monitorización del Nodo Bootstrap
+#### Monitorización del Nodo Bootstrap
 
 Una vez reiniciado, se puede seguir la descarga de paquetes e inicio de servicios:
 
@@ -170,7 +190,7 @@ INFO Waiting up to 1h0m0s (until 8:43AM CEST) for bootstrapping to complete...
 
 La linea anterior que indica: "for bootstrapping to complete...", significa: "el nodo bootstrap ha levantado correctamente la API temporal y está listo para recibir a los másters"
 
-## Instalación de Nodos Masters (Control Plane)
+### Instalación de Nodos Masters (Control Plane)
 
 ```
 [root@bastion ~]# curl -k https://10.26.0.10:22623/config/master
@@ -188,7 +208,7 @@ sudo reboot
 
 Una vez arrancados los equipos, empezaran a aparecer. Los equipos Masters se reiniciaran solos
 
-## Aprobación de Certificados y Taints Iniciales
+#### Aprobación de Certificados y Taints Iniciales
 
 ```
 [root@bastion ~]# export KUBECONFIG=/root/cluster-okd/auth/kubeconfig
@@ -280,7 +300,7 @@ Paramos el bootstrap y añadimos los workers
 [core@bootstrap ~]$ sudo poweroff
 ```
 
-# Instalación de Nodos Workers (Compute)
+### Instalación de Nodos Workers (Compute)
 
 ```
 sudo coreos-installer install /dev/sda \
@@ -297,7 +317,7 @@ core@worker1:~$ journalctl -u rpm-ostreed -f      <- Aquí es donde venmos que s
 
 Una vez acabado rebotará los workers.
 
-## Monitorización y aprobación de CSRs
+#### Monitorización y aprobación de CSRs
 
 ```
 [root@bastion ~]# export KUBECONFIG=/root/cluster-okd/auth/kubeconfig
