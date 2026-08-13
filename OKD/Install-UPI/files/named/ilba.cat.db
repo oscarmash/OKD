@@ -1,0 +1,38 @@
+$TTL 1D
+@       IN SOA   bastion.ilba.cat. admin.ilba.cat. (
+                        2026073103      ; serial
+                        1D              ; refresh
+                        1H              ; retry
+                        1W              ; expire
+                        3H )            ; minimum
+
+@       IN NS    bastion.ilba.cat.
+
+; Bastion
+bastion        IN A    10.26.0.5
+
+; Bootstrap (IP real asignada por DHCP)
+bootstrap      IN A    10.26.0.10
+
+; Masters
+master1        IN A    10.26.0.11
+master2        IN A    10.26.0.12
+master3        IN A    10.26.0.13
+
+; Workers
+worker1        IN A    10.26.0.21
+worker2        IN A    10.26.0.22
+
+; --- Registros API para ilba.cat ---
+api            IN A    10.26.0.5
+api-int        IN A    10.26.0.5
+*.apps         IN A    10.26.0.5
+
+; --- Registros API por si el cluster Name usó 'okd' (okd.ilba.cat) ---
+api.okd        IN A    10.26.0.5
+api-int.okd    IN A    10.26.0.5
+*.apps.okd     IN A    10.26.0.5
+
+; --- Virtual Center ---
+vcsa           IN A    172.26.0.3
+;esxi-r630      IN A    172.26.0.6
