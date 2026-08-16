@@ -5,6 +5,7 @@
   * [Arquitectura del Clúster](#arquitectura-del-Clúster)
   * [Especificaciones de Nodos OKD / OpenShift](#especificaciones-de-nodos-okd--openshift)
   * [Estimación de Tráfico de Red (Instalación Bare-metal / UPI)](#estimación-de-tráfico-de-red-instalación-bare-metal--upi)
+  * [Habilitar disk.EnableUUID](#habilitar-diskenableuuid)
 * [Preparación del Servidor Bastión](#preparación-del-servidor-bastión)
   * [Instalación de Servicios Base](#instalación-de-servicios-base)
 * [Despliegue de OKD](#despliegue-de-okd)
@@ -46,6 +47,10 @@ UPI (User-Provisioned Infrastructure) -> El administrador crea y gestiona manual
 | **Control Plane** *(Master)* | 3 | 5.0 GB - 6.0 GB | 15.0 GB - 18.0 GB |
 | **Compute** *(Worker)* | 2 | 4.5 GB - 5.5 GB | 9.0 GB - 11.0 GB |
 | **TOTAL ESTIMADO** | **5** | — | **~25 GB - 30 GB** |
+
+### Habilitar disk.EnableUUID
+
+Antes de desplegar los equipos si vamos a usar el storage de VMWare, habilitar en los equipos el flag: "Habilitar disk.EnableUUID"
 
 ## Preparación del Servidor Bastión
 
