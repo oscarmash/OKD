@@ -17,6 +17,7 @@
     * [Aprobación de Certificados y Taints Iniciales](#aprobación-de-certificados-y-taints-iniciales)
   * [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
     * [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
+    * [Aislamiento del Control Plane](#desactivación-del-schedulable-en-nodos-master-aislamiento-del-control-plane)
 
 
 ## Guía de Instalación OKD Bare-metal / UPI
@@ -360,6 +361,8 @@ master3.ilba.cat   Ready    control-plane,master,worker   40m    v1.34.4
 worker1.ilba.cat   Ready    worker                        114s   v1.34.4
 worker2.ilba.cat   Ready    worker                        111s   v1.34.4
 ```
+
+#### Desactivación del Schedulable en Nodos Master (Aislamiento del Control Plane)
 
 Por defecto, los nodos máster aceptan cargas de trabajo (schedulable). Para garantizar la estabilidad del plano de control, desactiva el despliegue de pods de usuario en los másters:
 
