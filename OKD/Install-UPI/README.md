@@ -362,7 +362,7 @@ worker1.ilba.cat   Ready    worker                        114s   v1.34.4
 worker2.ilba.cat   Ready    worker                        111s   v1.34.4
 ```
 
-#### Aislamiento del Control Plane (desactivación del Schedule en Nodos Master)
+#### Desactivación del Schedulable en Nodos Master (Aislamiento del Control Plane)
 
 Por defecto, los nodos máster aceptan cargas de trabajo (schedulable). Para garantizar la estabilidad del plano de control, desactiva el despliegue de pods de usuario en los másters:
 
