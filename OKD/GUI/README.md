@@ -92,3 +92,30 @@ v1.route.openshift.io   openshift-apiserver/api   False (FailedDiscoveryCheck)  
 [root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 [root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 ```
+
+### No hay acceso a la consola:
+
+Firefox da el siguiente mensaje de error:
+
+```
+Código de error: NS_ERROR_NET_EMPTY_RESPONSE
+```
+
+Los siguientes pods no están arrancados:
+
+```
+[root@bastion ~]# oc get pods -n openshift-console
+NAME                         READY   STATUS    RESTARTS       AGE
+console-69f79798b5-ktq8h     0/1     Running   0              2m21s
+console-79885f56f6-kgqft     0/1     Running   0              2m21s
+console-79885f56f6-nh4qw     0/1     Running   3 (107s ago)   17m
+downloads-7c48fc4584-472j5   1/1     Running   0              32m
+downloads-7c48fc4584-78r5x   1/1     Running   0              32m
+```
+
+Solución:
+
+```
+[root@bastion ~]# oc rollout restart deployment/router-default -n openshift-ingress
+[root@bastion ~]# oc rollout restart deployment/oauth-openshift -n openshift-authentication
+```
