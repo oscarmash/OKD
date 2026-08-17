@@ -8,6 +8,7 @@
   * [Procedimientos de Troubleshooting](#procedimientos-de-troubleshooting)
     * [La Consola o el OAuth se quedan bloqueados](#la-consola-o-el-oauth-se-quedan-bloqueados)
     * [Error the server doesn't have a resource type "route"](#error-the-server-doesnt-have-a-resource-type-route)
+    * [No hay acceso a la consola](#no-hay-acceso-a-la-consola)
 
 # Verificación y Resolución de Problemas de la Consola Web (OKD)
 
@@ -93,7 +94,7 @@ v1.route.openshift.io   openshift-apiserver/api   False (FailedDiscoveryCheck)  
 [root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 ```
 
-### No hay acceso a la consola:
+### No hay acceso a la consola
 
 Firefox da el siguiente mensaje de error:
 
