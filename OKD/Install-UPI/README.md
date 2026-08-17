@@ -168,6 +168,18 @@ sudo reboot
 
 #### Monitorización del Nodo Bootstrap
 
+
+Desactivar la verificación de claves del host y configurar el cliente SSH para que ignore el known_hosts y no pida confirmación:
+
+```
+cat <<EOF >> /etc/ssh/ssh_config.d/99-disable-strict-checking.conf
+Host *
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR
+EOF
+```
+
 Una vez reiniciado, se puede seguir la descarga de paquetes e inicio de servicios:
 
 ```
