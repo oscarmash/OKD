@@ -1,3 +1,14 @@
+# Operators de OKD
+
+Operadores nativos que componen OKD:
+* Cluster Version Operator (CVO): El "jefe de jefes". Se encarga de supervisar a todos los demás operadores y gestionar las actualizaciones de versión de la plataforma.
+* Machine Config Operator (MCO): Gestiona Fedora CoreOS. Si necesitas cambiar una regla de Kernel, un archivo en /etc o la configuración de cri-o/kubelet, creas un objeto MachineConfig y el MCO se encarga de aplicarlo y reiniciar el nodo de forma ordenada.
+* Network Operator / OVN-Kubernetes: Se encarga de desplegar y mantener la red CNI, las NetworkPolicies, EgressIPs, etc.
+* Storage Operator: Mantiene los controladores CSI (como el de vSphere) para el aprovisionamiento dinámico de volúmenes.
+* Cluster Monitoring Operator (CMO): Despliega y mantiene Prometheus, Alertmanager y los dashboards de la consola.
+* Ingress / Router Operator: Despliega y escala los routers HAProxy internos para exponer las aplicaciones hacia el exterior.
+* Authentication / OAuth Operator: Gestiona la integración con proveedores de identidad (LDAP, OIDC, HTPasswd) y la emisión de tokens.
+
 # KubeSpary vs OKD
 
 Diferencias:
