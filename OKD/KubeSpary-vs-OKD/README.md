@@ -15,16 +15,6 @@ En OpenShift/OKD, las MCP (Machine Config Pools):
 * Personalización masiva: Si necesitas, por ejemplo, que todos tus workers tengan un valor concreto en sysctl (net.ipv4.ip_forward=1), en lugar de ir nodo por nodo, creas un MachineConfig, lo vinculas al pool worker, y el MCP se encarga de desplegarlo en los 50 workers que pudieras tener.
 
 ```
-[root@bastion ~]# oc get nodes
-NAME               STATUS                     ROLES                  AGE   VERSION
-master1.ilba.cat   Ready                      control-plane,master   28h   v1.28.7+6e2789b
-master2.ilba.cat   Ready                      control-plane,master   28h   v1.28.7+6e2789b
-master3.ilba.cat   Ready,SchedulingDisabled   control-plane,master   28h   v1.28.7+6e2789b
-worker1.ilba.cat   Ready                      worker                 23h   v1.28.7+6e2789b
-worker2.ilba.cat   Ready,SchedulingDisabled   worker                 23h   v1.28.7+6e2789b
-```
-
-```
 [root@bastion ~]# oc get mcp
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT   AGE
 master   rendered-master-f394f6962b5c73d456b82f7f879702c4   False     True       False      3              0                   0                     0                      28h
