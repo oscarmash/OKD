@@ -1,3 +1,12 @@
+# Configuración de vSphere CSI Driver en OpenShift / OKD
+
+* [Habilitar `disk.EnableUUID` en vSphere](#habilitar-diskenableuuid-en-vsphere)
+* [Verificación del Estado del Clúster y StorageClass](#verificación-del-estado-del-clúster-y-storageclass)
+* [Despliegue de Prueba (PVC y Pod)](#despliegue-de-prueba-pvc-y-pod)
+* [Procedimientos de Troubleshooting](#procedimientos-de-troubleshooting)
+  * [VSphereCSIDriverOperatorCRDegraded](#vspherecsidriveroperatorcrdegraded)
+
+## Habilitar `disk.EnableUUID` en vSphere
 
 Para que el driver CSI de vSphere funcione, las Máquinas Virtuales de los nodos (Control Plane y Workers) deben tener habilitada la propiedad disk.EnableUUID. 
 Sin esto, Linux no expone los UUIDs /dev/disk/by-id/ que necesita Kubernetes para identificar el volumen.
@@ -13,6 +22,10 @@ Como solucionarlo:
 
 ![Enable disk.EnableUUID](images/disk_EnableUUID.png)
 
+## Verificación del Estado del Clúster y StorageClass
+
+Verificamos que el operador de almacenamiento responda correctamente y que la StorageClass por defecto (`thin-csi`) esté disponible:
+
 ```
 [root@bastion ~]# oc get clusteroperator storage
 NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
@@ -23,9 +36,11 @@ NAME                 PROVISIONER              RECLAIMPOLICY   VOLUMEBINDINGMODE 
 thin-csi (default)   csi.vsphere.vmware.com   Delete          WaitForFirstConsumer   true                   3m32s
 ```
 
+## Despliegue de Prueba (PVC y Pod)
+
 Todos los datos de los PVCs, se guardaran en la carpeta "fcd" (First Class Disk) del storage: "stg-1500GB"
 
-Para verificar que todo funciona correctamente, crearemos un pod con su PVC:
+Para verificar que todo funciona correctamente, crearemos un proyecto dedicado y desplegaremos un Pod con su correspondiente PersistentVolumeClaim (PVC):
 
 ```
 [root@bastion ~]# oc new-project test-storage \
@@ -66,6 +81,8 @@ spec:
       claimName: test-pvc
 ```
 
+Aplicamos la configuración y comprobamos el estado de los recursos:
+
 ```
 [root@bastion ~]# oc apply -f manifest/test-storage.yaml
 ```
@@ -85,7 +102,9 @@ test-pvc   Bound    pvc-8e308c36-cde7-4ffb-9352-981862fb246d   1Gi        RWO   
 
 ### VSphereCSIDriverOperatorCRDegraded
 
-Problema:
+**Problema:**
+
+El operador de almacenamiento muestra un estado DEGRADED=True indicando que los nodos no tienen el formato de providerID esperado por vSphere (vsphere://<UUID>):
 
 ```
 [root@bastion ~]# oc get clusteroperator storage
@@ -93,9 +112,12 @@ NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSA
 storage   4.21.0-okd-scos.9   True        False         True       22h     VSphereCSIDriverOperatorCRDegraded: VMwareVSphereOperatorCheckDegraded: node master1.ilba.cat is not a vSphere node: providerID "" does not have the expected vSphere prefix "vsphere://"
 ```
 
-Solución:
+**Solución:**
 
-No está marcado en el VMWare el parámetro disk.EnableUUID con valor "TRUE".
+En instalaciones manuales (UPI), Kubelet puede no asignar automáticamente el providerID de vSphere si la VM no tenía inicialmente habilitado el parámetro disk.EnableUUID="TRUE". Vamos que no está marcado en el VMWare el parámetro disk.EnableUUID con valor "TRUE" al desplegar los equipos.
+
+
+Ejecutaremos el siguiente script para extraer el systemUUID del nodo e inyectar o actualizar el campo spec.providerID en la API de OKD:
 
 ```
 [root@bastion ~]# vim fix-diskEnableUUID.sh
