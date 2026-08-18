@@ -9,3 +9,4 @@
 * OVN-Kubernetes network plugin
     * [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) :construction:
     * [Egress IP address](./OKD/OVN-Kubernetes/egressIPaddress/README.md)
+* [Insights](./OKD/insights/README.md)
