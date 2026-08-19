@@ -65,6 +65,14 @@ spec:
 
 [root@bastion ~]# oc apply -f manifest/minio-loki.yaml
 
+[root@bastion ~]# oc -n openshift-logging get pods
+NAME                          READY   STATUS    RESTARTS   AGE
+minio-loki-7b7f5c5b78-wshsc   1/1     Running   0          36s
+
+[root@bastion ~]# oc -n openshift-logging get pvc
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+minio-loki-pvc   Bound    pvc-8444038d-8796-4a7a-ac59-15351af6b882   50Gi       RWO            thin-csi       <unset>                 47s
+
 [root@bastion ~]# vim manifest/create-bucket-job.yaml
 apiVersion: batch/v1
 kind: Job
@@ -96,6 +104,53 @@ spec:
   --from-literal=endpoint="http://minio-loki.openshift-logging.svc:9000" \
   --from-literal=style="path"
 
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Operador de LokiStack
+
+El API de Kubernetes no reconoce la definición del recurso LokiStack porque todavía no se ha instalado el Loki Operator en el clúster. Lo instalamos:
+
+Pero antes hemos de ver que es lo que tenemos en el catálogo
+
+[root@bastion ~]# oc get packagemanifests | grep -i loki
+loki-helm-operator                          Community Operators   47h
+loki-operator                               Community Operators   47h
+
+[root@bastion ~]# oc get packagemanifest loki-operator -o jsonpath='{.status.channels[*].name}'
+alpha
+
+[root@bastion ~]# vim manifest/loki-operator-install.yaml
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: loki-operator
+  namespace: openshift-operators
+spec:
+  channel: alpha
+  name: loki-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+[root@bastion ~]# oc apply -f manifest/loki-operator-install.yaml
+
+[root@bastion ~]# oc get installplan -n openshift-operators
+NAME            CSV                     APPROVAL    APPROVED
+install-lqt7w   loki-operator.v0.10.2   Automatic   true
+
+[root@bastion ~]# oc get csv -n openshift-operators
+NAME                    DISPLAY                   VERSION   REPLACES                PHASE
+loki-operator.v0.10.2   Community Loki Operator   0.10.2    loki-operator.v0.10.1   Succeeded
+
+[root@bastion ~]# oc get crd lokistacks.loki.grafana.com
+NAME                          CREATED AT
+lokistacks.loki.grafana.com   2026-08-19T08:11:41Z
+
+[root@bastion ~]# oc get lokistack logging-loki -n openshift-logging -o jsonpath='{.status.conditions}' | jq .
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 [root@bastion ~]# vim manifest/lokistack.yaml
 apiVersion: loki.grafana.com/v1
 kind: LokiStack
@@ -113,9 +168,103 @@ spec:
       type: s3
   storageClassName: thin-csi
   managementState: Managed
+  tenants:
+    mode: openshift-logging
 
 [root@bastion ~]# oc apply -f manifest/lokistack.yaml
 
+[root@bastion ~]# oc get pods -n openshift-logging
+
+:warning: NOS HEMOS QUEDADO SIN RECURSOS :warning:
+:warning: Hemos de aumentar en CPU/RAM :warning:
+
+[root@bastion ~]# oc describe nodes -l node-role.kubernetes.io/worker | grep -A 8 "Allocated resources"
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                3465m (99%)   10m (0%)
+  memory             7855Mi (52%)  0 (0%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%)
+--
+Allocated resources:
+  (Total limits may be over 100 percent, i.e., overcommitted.)
+  Resource           Requests      Limits
+  --------           --------      ------
+  cpu                3165m (90%)   10m (0%)
+  memory             6587Mi (44%)  0 (0%)
+  ephemeral-storage  0 (0%)        0 (0%)
+  hugepages-1Gi      0 (0%)        0 (0%)
+  hugepages-2Mi      0 (0%)        0 (0%
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+[root@bastion ~]# oc get lokistack -n openshift-logging
+NAME           AGE
+logging-loki   41m
+
+[root@bastion ~]# oc get pods -n openshift-logging
+NAME                          READY   STATUS    RESTARTS   AGE
+minio-loki-7b7f5c5b78-wshsc   1/1     Running   0          63m
+
+[root@bastion ~]# oc get svc -n openshift-logging | grep loki
+minio-loki   ClusterIP   172.30.206.124   <none>        9000/TCP   63m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [root@bastion ~]# vim manifest/logforwarder.yaml
 apiVersion: observability.openshift.io/v1
