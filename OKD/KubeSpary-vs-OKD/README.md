@@ -47,3 +47,47 @@ OKD viene con un conjunto de SCCs predefinidas con distintos niveles de restricc
 * restricted-v2 (default) -> No permite ejecutar como root, asigna UIDs aleatorios en un rango alto asignado al namespace y prohíbe anotaciones inseguras (seccomp).
 * anyuid -> Permite que los contenedores se ejecuten con cualquier UID definido en la imagen (por ejemplo, UID 1000 o root), pero mantiene restricciones sobre el host.
 * privileged -> Otorga acceso total. El contenedor puede ejecutar como root, acceder a dispositivos del host, ignorar comprobaciones de seccomp y aplicar cualquier configuración de red o volumen.
+
+# Operator Lifecycle Manager (OLM)
+
+Arquitectura:
+
+CatalogSource -> Subscription -> InstallPlan -> ClusterServiceVersion
+
+* CatalogSource: El repositorio o catálogo que expone la lista de Operators disponibles y sus versiones para el cluster.
+* Subscription: El recurso donde indicas qué Operator del catálogo quieres instalar, en qué canal y cómo actualizarlo.
+* InstallPlan: La lista de ejecución generada por OLM con los manifests exactos (CRDs, RBAC, Deployments) pendientes de aplicar.
+* ClusterServiceVersion (CSV): El estado activo de la instalación que contiene los metadatos y despliega el pod del Operator.
+
+## CatalogSource
+
+```
+[root@bastion ~]# oc get catalogsource -n openshift-marketplace
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+community-operators   Community Operators   grpc   Red Hat     2d22h
+```
+
+```
+[root@bastion ~]# oc get packagemanifests | grep -iE "logging|vector|fluent"
+neuvector-community-operator                Community Operators   2d23h
+ack-s3vectors-controller                    Community Operators   2d23h
+logging-operator                            Community Operators   2d23h
+```
+
+## Subscription
+
+Le indica a OLM que deje de rastrear, reconciliar o buscar actualizaciones para ese paquete.
+
+```
+$ oc delete sub logging-operator -n openshift-operators
+```
+
+## InstallPlan
+
+## ClusterServiceVersion
+
+Al borrar el CSV, el controller de OLM detecta su ausencia y elimina en cascada los recursos de ejecución asociados: el Deployment del Controller, sus ServiceAccounts, Roles y ClusterRoleBindings.
+
+```
+oc delete csv logging-operator.v0.4.0 -n openshift-operators
+```

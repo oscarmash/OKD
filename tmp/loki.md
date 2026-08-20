@@ -159,6 +159,7 @@ metadata:
   namespace: openshift-logging
 spec:
   size: 1x.extra-small
+  replicationFactor: 1
   storage:
     schemas:
       - version: v13
@@ -170,48 +171,68 @@ spec:
   managementState: Managed
   tenants:
     mode: openshift-logging
+  template:
+    compactor:
+      replicas: 1
+    distributor:
+      replicas: 1
+    ingester:
+      replicas: 1
+    querier:
+      replicas: 1
+    queryFrontend:
+      replicas: 1
+    gateway:
+      replicas: 1
+    indexGateway:
+      replicas: 1
 
 [root@bastion ~]# oc apply -f manifest/lokistack.yaml
 
 [root@bastion ~]# oc get pods -n openshift-logging
-
-:warning: NOS HEMOS QUEDADO SIN RECURSOS :warning:
-:warning: Hemos de aumentar en CPU/RAM :warning:
-
-[root@bastion ~]# oc describe nodes -l node-role.kubernetes.io/worker | grep -A 8 "Allocated resources"
-Allocated resources:
-  (Total limits may be over 100 percent, i.e., overcommitted.)
-  Resource           Requests      Limits
-  --------           --------      ------
-  cpu                3465m (99%)   10m (0%)
-  memory             7855Mi (52%)  0 (0%)
-  ephemeral-storage  0 (0%)        0 (0%)
-  hugepages-1Gi      0 (0%)        0 (0%)
-  hugepages-2Mi      0 (0%)        0 (0%)
---
-Allocated resources:
-  (Total limits may be over 100 percent, i.e., overcommitted.)
-  Resource           Requests      Limits
-  --------           --------      ------
-  cpu                3165m (90%)   10m (0%)
-  memory             6587Mi (44%)  0 (0%)
-  ephemeral-storage  0 (0%)        0 (0%)
-  hugepages-1Gi      0 (0%)        0 (0%)
-  hugepages-2Mi      0 (0%)        0 (0%
+NAME                                           READY   STATUS    RESTARTS   AGE
+logging-loki-compactor-0                       1/1     Running   0          47s
+logging-loki-distributor-5d7cb955b7-bxzql      1/1     Running   0          47s
+logging-loki-gateway-5974fd4877-sjh6h          2/2     Running   0          47s
+logging-loki-index-gateway-0                   1/1     Running   0          47s
+logging-loki-ingester-0                        1/1     Running   0          47s
+logging-loki-querier-6fb4cd46b-dvbgx           1/1     Running   0          47s
+logging-loki-query-frontend-65f6499f74-skg9p   1/1     Running   0          47s
+minio-loki-7b7f5c5b78-wshsc                    1/1     Running   1          24h
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+Instalación de Cluster Logging Operator (CLO)
 
-[root@bastion ~]# oc get lokistack -n openshift-logging
-NAME           AGE
-logging-loki   41m
+[root@bastion ~]# oc get catalogsource -n openshift-marketplace
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+community-operators   Community Operators   grpc   Red Hat     2d22h
 
-[root@bastion ~]# oc get pods -n openshift-logging
-NAME                          READY   STATUS    RESTARTS   AGE
-minio-loki-7b7f5c5b78-wshsc   1/1     Running   0          63m
+[root@bastion ~]# oc get packagemanifests | grep -iE "logging|vector|fluent"
+neuvector-community-operator                Community Operators   2d23h
+ack-s3vectors-controller                    Community Operators   2d23h
+logging-operator                            Community Operators   2d23h
 
-[root@bastion ~]# oc get svc -n openshift-logging | grep loki
-minio-loki   ClusterIP   172.30.206.124   <none>        9000/TCP   63m
+[root@bastion ~]# oc get packagemanifest logging-operator -o jsonpath='{.status.channels[*].name}' && echo
+beta
+
+[root@bastion ~]# vim manifest/logging-operator-install.yaml
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: logging-operator
+  namespace: openshift-operators
+spec:
+  channel: beta
+  name: logging-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+  installPlanApproval: Automatic
+
+[root@bastion ~]# oc apply -f manifest/logging-operator-install.yaml
+[root@bastion ~]# oc get csv -n openshift-operators
+NAME                    DISPLAY                   VERSION   REPLACES                PHASE
+loki-operator.v0.11.0   Community Loki Operator   0.11.0    loki-operator.v0.10.2   Succeeded
 
 
 
@@ -219,6 +240,20 @@ minio-loki   ClusterIP   172.30.206.124   <none>        9000/TCP   63m
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+[root@bastion ~]# vim manifest/cluster-log-forwarder.yaml
 
 
 

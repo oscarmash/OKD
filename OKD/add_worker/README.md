@@ -19,7 +19,6 @@ El proceso requiere registrar la nueva máquina virtual en los servicios de red 
 * [4. Integración y Aprobación de Certificados (CSR) en OpenShift](#4-integración-y-aprobación-de-certificados-csr-en-openshift)
   * [4.1. Monitorización y aprobación del primer CSR (Cliente)](#41-monitorización-y-aprobación-del-primer-csr-cliente)
   * [4.2. Monitorización y aprobación del segundo CSR (Servidor/Kubelet)](#42-monitorización-y-aprobación-del-segundo-csr-servidorkubelet)
-* [5. Verificación del Nodo y Rebalanceo de Cargas](#5-verificación-del-nodo)
 
 
 ## 1. Preparación de los Servicios de Red en el Bastión
@@ -129,4 +128,12 @@ master3.ilba.cat   Ready    control-plane,master   2d2h   v1.34.4
 worker1.ilba.cat   Ready    worker                 2d1h   v1.34.4
 worker2.ilba.cat   Ready    worker                 2d1h   v1.34.4
 worker3.ilba.cat   Ready    worker                 14m    v1.34.4
+```
+
+### 4.3. Etiquetar worker3 para OVN
+
+Si usas OVN-Kubernetes (el CNI por defecto) con funcionalidades de Egress IP o ciertas configuraciones de red, OVN no considerará a worker3 para asignar tráfico de salida o pods que requieran estas capacidades hasta que tengan esta etiqueta o la red termine de reconciliarlos.
+
+```
+[root@bastion ~]# oc label node worker3.ilba.cat k8s.ovn.org/egress-assignable=""
 ```
