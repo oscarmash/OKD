@@ -1,3 +1,5 @@
+```
+
 [root@bastion ~]# oc create namespace openshift-logging
 
 [root@bastion ~]# vim manifest/minio-loki.yaml
@@ -336,3 +338,5 @@ spec:
 [root@bastion ~]# oc apply -f manifest/logforwarder.yaml
 
 Acceder a los logs en la Consola Web de OKD: ve a Observability $\rightarrow$ Logs
+
+```
