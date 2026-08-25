@@ -109,11 +109,12 @@ spec:
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Operador de LokiStack
+Operador de LokiStack (Loki Operator)
 
 El API de Kubernetes no reconoce la definición del recurso LokiStack porque todavía no se ha instalado el Loki Operator en el clúster. Lo instalamos:
+Gestiona el almacenamiento e indexación de logs.
 
-Pero antes hemos de ver que es lo que tenemos en el catálogo
+Buscar el operador en los catálogos:
 
 [root@bastion ~]# oc get packagemanifests | grep -i loki
 loki-helm-operator                          Community Operators   47h
@@ -150,8 +151,6 @@ NAME                          CREATED AT
 lokistacks.loki.grafana.com   2026-08-19T08:11:41Z
 
 [root@bastion ~]# oc get lokistack logging-loki -n openshift-logging -o jsonpath='{.status.conditions}' | jq .
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 [root@bastion ~]# vim manifest/lokistack.yaml
 apiVersion: loki.grafana.com/v1
@@ -204,138 +203,169 @@ minio-loki-7b7f5c5b78-wshsc                    1/1     Running   1          24h
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Instalación de Cluster Logging Operator (CLO)
+Para que en el menú lateral de la consola de OKD vas a Observe -> Logs, y tengas una GUI completa integrada con OKD, hemos de tener lo siguiente:
 
-[root@bastion ~]# oc get catalogsource -n openshift-marketplace
+* Instalar el Cluster Logging Operator y el Loki Operator desde el OperatorHub de la consola de OKD.
+* Crear un recurso LokiStack (que gestiona las instancias de Loki de forma nativa en OKD).
+* Crear un recurso ClusterLogForwarder: Aquí es donde le dices a OKD que capture los logs de los pods (los de infrastructure y application) y los reenvíe al LokiStack.
+
+Una vez que el ClusterLogForwarder empieza a inyectar logs en Loki, el plugin de la consola de OKD activa la pestaña Observe -> Logs.
+
+
+# Cluster Logging Operator (que despliega el recolector Vector)
+
+#### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 #### 1 ####
+
+[root@bastion ~]# oc get catalogsources -n openshift-marketplace
+NAME               DISPLAY             TYPE   PUBLISHER   AGE
+redhat-operators   Red Hat Operators   grpc   Red Hat     26h
+
+[root@bastion ~]# oc get operatorhub cluster -o yaml
+...
+  - disabled: true
+    name: community-operators
+    status: Success
+  - disabled: true
+    name: redhat-marketplace
+    status: Success
+  - disabled: false
+    name: redhat-operators
+    status: Success
+  - disabled: true
+    name: certified-operators
+    status: Success
+...
+
+oc patch operatorhub cluster --type merge -p '{"spec": {"disableAllDefaultSources": false}}'
+
+
+oc patch operatorhub cluster --type merge -p '{"spec": {"sources": [{"name": "community-operators", "disabled": false}, {"name": "redhat-operators", "disabled": true}, {"name": "certified-operators", "disabled": true}, {"name": "redhat-marketplace", "disabled": true}]}}'
+
+[root@bastion ~]# oc get operatorhub cluster -o yaml
+...
+  - disabled: false
+    name: community-operators
+    status: Success
+  - disabled: true
+    name: redhat-marketplace
+    status: Success
+  - disabled: true
+    name: redhat-operators
+    status: Success
+  - disabled: true
+    name: certified-operators
+    status: Success
+...
+
+[root@bastion ~]# oc get catalogsources -n openshift-marketplace
 NAME                  DISPLAY               TYPE   PUBLISHER   AGE
-community-operators   Community Operators   grpc   Red Hat     2d22h
+community-operators   Community Operators   grpc   Red Hat     6m10s
 
-[root@bastion ~]# oc get packagemanifests | grep -iE "logging|vector|fluent"
-neuvector-community-operator                Community Operators   2d23h
-ack-s3vectors-controller                    Community Operators   2d23h
-logging-operator                            Community Operators   2d23h
+[root@bastion ~]# oc get pods -n openshift-marketplace
+NAME                                    READY   STATUS    RESTARTS   AGE
+community-operators-lf4bn               1/1     Running   0          6m23s
+marketplace-operator-75b8797c46-7qrm8   1/1     Running   8          6d5h
 
-[root@bastion ~]# oc get packagemanifest logging-operator -o jsonpath='{.status.channels[*].name}' && echo
+[root@bastion ~]# oc get packagemanifests -n openshift-marketplace | grep -i logging
+logging-operator                            Community Operators   6m43s
+
+[root@bastion ~]# kubectl -n olm get packagemanifest logging-operator -o jsonpath='{.status.channels[*].name}' && echo
 beta
 
 [root@bastion ~]# vim manifest/logging-operator-install.yaml
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-logging-operatorgroup
+  namespace: openshift-logging
+spec:
+  targetNamespaces:
+  - openshift-logging
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: logging-operator
-  namespace: openshift-operators
+  namespace: openshift-logging
 spec:
-  channel: beta
+  channel: "beta"
   name: logging-operator
   source: community-operators
   sourceNamespace: openshift-marketplace
-  installPlanApproval: Automatic
+  installPlanApproval: Manual
 
 [root@bastion ~]# oc apply -f manifest/logging-operator-install.yaml
-[root@bastion ~]# oc get csv -n openshift-operators
-NAME                    DISPLAY                   VERSION   REPLACES                PHASE
-loki-operator.v0.11.0   Community Loki Operator   0.11.0    loki-operator.v0.10.2   Succeeded
 
+[root@bastion ~]# oc get installplan -n openshift-logging
+NAME            CSV                       APPROVAL   APPROVED
+install-jbrnh   logging-operator.v0.4.0   Manual     false
 
 
+oc patch installplan install-jbrnh \
+  -n openshift-logging \
+  --type merge \
+  -p '{"spec": {"approved": true}}'
 
 
+[root@bastion ~]# oc get installplan -n openshift-logging
+NAME            CSV                       APPROVAL   APPROVED
+install-jbrnh   logging-operator.v0.4.0   Manual     true
 
+[root@bastion ~]# oc get csv -n openshift-logging
+NAME                      DISPLAY                   VERSION   REPLACES                  PHASE
+logging-operator.v0.4.0   Logging Operator          0.4.0     logging-operator.v0.3.0   Succeeded
+loki-operator.v0.11.0     Community Loki Operator   0.11.0    loki-operator.v0.10.2     Succeeded
 
+# Configuración de recolección hacia LokiStack
 
-
-
-
-
-
-
-
-
-
-
-
-
-[root@bastion ~]# vim manifest/cluster-log-forwarder.yaml
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-[root@bastion ~]# vim manifest/logforwarder.yaml
-apiVersion: observability.openshift.io/v1
-kind: ClusterLogForwarder
+[root@bastion ~]# vim manifest/collection-LokiStack.yaml
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Logging
 metadata:
-  name: instance
+  name: default-logging
   namespace: openshift-logging
 spec:
-  serviceAccount:
-    name: cluster-logging-operator
-  outputs:
-    - name: default-loki
-      type: lokiStack
-      lokiStack:
-        authentication:
-          token:
-            from: serviceAccount
-        target:
-          name: logging-loki
-          namespace: openshift-logging
-      tls:
-        ca:
-          key: service-ca.crt
-          configMapName: openshift-service-ca.crt
-  pipelines:
-    - name: all-to-loki
-      inputRefs:
-        - application
-        - infrastructure
-        - audit
-      outputRefs:
-        - default-loki
+  fluentbit: {}
+  controlNamespace: openshift-logging
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterOutput
+metadata:
+  name: loki-output
+  namespace: openshift-logging
+spec:
+  loki:
+    url: "http://logging-loki-gateway.openshift-logging.svc:8080"
+    configure_kubernetes_labels: true
+---
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: ClusterFlow
+metadata:
+  name: all-logs-flow
+  namespace: openshift-logging
+spec:
+  globalOutputRefs:
+    - loki-output
 
-[root@bastion ~]# oc apply -f manifest/logforwarder.yaml
+Has instalado el operador Logging Operator de Opstree Labs (logging.opstreelabs.in), que es un operador diseñado para desplegar la pila Elasticsearch/Fluentd/Kibana.
+
+
+
+
+
+#### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 #### 2 ####
+
+Operador nativo de Loki / Vector
+
+[root@bastion ~]# oc patch console.operator.openshift.io cluster --type json -p '[{"op": "add", "path": "/spec/plugins/-", "value": "logging-view-plugin"}]'
+
+
+
+
+
+
+
+
 
 Acceder a los logs en la Consola Web de OKD: ve a Observability $\rightarrow$ Logs
 

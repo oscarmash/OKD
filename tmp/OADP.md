@@ -1,0 +1,1 @@
+OADP (OpenShift API for Data Protection) es el operador oficial recomendado para realizar copias de seguridad y restauraciones en OKD (y en Red Hat OpenShift).
