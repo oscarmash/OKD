@@ -8,10 +8,6 @@
 * Documentación de la Comunidad: [okd.io](https://okd.io)
 * Documentación Oficial del Producto: [docs.okd.io](https://docs.okd.io)
 
-![Warning Operators](images/WARNING_Operators.png)
-
----
-
 ### Índice de Contenidos
 
 #### Introducción y Comparativas
