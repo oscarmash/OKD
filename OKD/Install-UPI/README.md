@@ -186,18 +186,11 @@ Una vez reiniciado, se puede seguir la descarga de paquetes e inicio de servicio
 ```
 [root@bastion ~]# ssh core@bootstrap
 core@bootstrap:~$ journalctl -u rpm-ostreed -f  <- Aquí es donde venmos que se va descargando las cosas
-```
 
-Una vez acabado, se reiniciará solo y una vez arrancado: esperar, sino el master irá dando errores
-
-```
 core@bootstrap:~$ sudo journalctl -b -u bootkube.service -f
 ```
 
-Pasados unos minutos podremos lanzar el siguiente comando.
-
-El mensaje: "until 8:43AM CEST", es indicativo y quiere decir: "Voy a quedarme escuchando a la API durante un máximo de 1 hora, si en 60 minutos los 3 másters no han terminado de descargar sus pods, daré el comando por fallado (timeout) y te devolveré el control del prompt"
-Durante esta ventana, el nodo bootstrap levantará una API pública/temporal esperando la integración de los másters.
+Pasados unos minutos podremos lanzar el siguiente comando:
 
 ```
 [root@bastion ~]# openshift-install wait-for bootstrap-complete --dir=/root/cluster-okd/ --log-level=info
@@ -205,6 +198,9 @@ INFO Waiting up to 20m0s (until 8:03AM CEST) for the Kubernetes API at https://a
 INFO API v1.28.2-3598+6e2789bbd58938-dirty up
 INFO Waiting up to 1h0m0s (until 8:43AM CEST) for bootstrapping to complete...
 ```
+
+El mensaje: "until 8:43AM CEST", es indicativo y quiere decir: "Voy a quedarme escuchando a la API durante un máximo de 1 hora, si en 60 minutos los 3 másters no han terminado de descargar sus pods, daré el comando por fallado (timeout) y te devolveré el control del prompt"
+Durante esta ventana, el nodo bootstrap levantará una API pública/temporal esperando la integración de los másters.
 
 La linea anterior que indica: "for bootstrapping to complete...", significa: "el nodo bootstrap ha levantado correctamente la API temporal y está listo para recibir a los másters"
 
