@@ -20,6 +20,7 @@
 #### Instalación y Gestión de Nodos
 * [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md)
 * [Añadir nodo al clúster de OKD](./OKD/add_worker/README.md)
+* [Configuración de nodos mediante MachineConfig (MCO)](./OKD/MachineConfig/README.md)
 
 #### Interfaz y Operaciones
 * [Consola Web (GUI)](./OKD/GUI/README.md)

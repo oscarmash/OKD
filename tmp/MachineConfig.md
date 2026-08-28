@@ -1,1 +1,0 @@
-https://docs.okd.io/latest/machine_configuration/index.html
