@@ -1,8 +1,0 @@
-
-
-[root@bastion ~]# oc get clusteroperator storage
-NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
-storage   4.21.0-okd-scos.9   True        False         True       10d     VSphereCSIDriverOperatorCRDegraded: VMwareVSphereOperatorCheckDegraded: unable to find VM master1.ilba.cat by UUID a5381342-6a0a-b4b9-b647-3007991cf1d6
-
-[root@bastion ~]# oc get node master1.ilba.cat -o jsonpath='{.status.nodeInfo.systemUUID}' && echo
-a5381342-6a0a-b4b9-b647-3007991cf1d6
