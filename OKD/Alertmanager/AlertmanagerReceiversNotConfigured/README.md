@@ -1,6 +1,13 @@
+# AlertmanagerReceiversNotConfigured
+
+* [AlertmanagerReceiversNotConfigured](#alertmanagerreceiversnotconfigured)
+  * [Relay SMTP](#relay-smtp)
+  * [Configuración de Alertmanager](#configuración-de-alertmanager)
+  * [Validacion](#validacion)
+
 En el Dashboard de la consola GUI de OKD, podemos ver el siguiente mensajes: **"AlertmanagerReceiversNotConfigured"**
 
-# AlertmanagerReceiversNotConfigured
+![AlertmanagerReceiversNotConfigured](images/AlertmanagerReceiversNotConfigured.png)
 
 Para solucionarlo hemos de:
 
@@ -11,9 +18,12 @@ Para solucionarlo hemos de:
 
 Configuraremos nuestro Alermanager, para que envie alertas a un servidor SMTP, pero antes hemos de configurar nuestro relay SMTP:
 
+```
 [root@bastion ~]# dnf install postfix telnet cyrus-sasl cyrus-sasl-plain -y
 [root@bastion ~]# systemctl enable --now postfix
+```
 
+```
 [root@bastion ~]# vim /etc/postfix/main.cf
 
 myhostname = relay.ilba.cat
@@ -28,21 +38,30 @@ smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
 smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt
+```
 
+```
 [root@bastion ~]# vim /etc/postfix/sasl_passwd
 [smtp.gmail.com]:587 oscarmash@gmail.com:xxxx_xxxxx
+```
 
+```
 [root@bastion ~]# postmap /etc/postfix/sasl_passwd
 [root@bastion ~]# chmod 600 /etc/postfix/sasl_passwd /etc/postfix/sasl_passwd.db
-
 [root@bastion ~]# systemctl restart postfix
+```
 
+Verificaremos por telnet que funciona:
+
+```
 [root@bastion ~]# tail -f /var/log/maillog
 Aug 29 09:48:57 bastion postfix/smtp[12659]: 4C1EC20651AA: to=<oscarmash@gmail.com>, relay=smtp.gmail.com[74.125.133.109]:587, delay=572, delays=570/0.06/0.45/0.75, dsn=2.0.0, status=sent (250 2.0.0 OK  1787989737 5b1f17b1804b1-49ccae954f9sm49810175e9.13 - gsmtp)
 Aug 29 09:48:57 bastion postfix/qmgr[12657]: 4C1EC20651AA: removed
+```
 
 ## Configuración de Alertmanager
 
+```
 [root@bastion ~]# vim manifest/cluster-alertmanager-patch.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: Alertmanager
@@ -77,19 +96,10 @@ spec:
     - name: 'Watchdog'
 
 [root@bastion ~]# oc apply -f manifest/cluster-alertmanager-patch.yaml
-
-[root@bastion ~]# oc get alertmanager main -n openshift-monitoring -o yaml | grep smtp_smarthost
-      {"apiVersion":"monitoring.coreos.com/v1","kind":"Alertmanager","metadata":{"annotations":{},"name":"main","namespace":"openshift-monitoring"},"spec":{"config":{"global":{"smtp_from":"alertmanager-okd@ilba.cat","smtp_require_tls":false,"smtp_smarthost":"10.26.0.5:25"},"receivers":[{"email_configs":[{"send_resolved":true,"to":"oscarmash@gmail.com"}],"name":"default-email"}],"route":{"group_by":["alertname","namespace"],"group_interval":"5m","group_wait":"30s","receiver":"default-email","repeat_interval":"12h"}}}}
-
 [root@bastion ~]# oc delete pod -n openshift-monitoring -l app.kubernetes.io/name=alertmanager
+```
 
-[root@bastion ~]# oc get pod -n openshift-monitoring -l app.kubernetes.io/name=alertmanager
-NAME                  READY   STATUS    RESTARTS   AGE
-alertmanager-main-0   6/6     Running   0          36s
-alertmanager-main-1   6/6     Running   0          32s
-
-[root@bastion ~]# oc rollout restart deployment/cluster-monitoring-operator -n openshift-monitoring
-
+```
 [root@bastion ~]# vim manifest/alertmanager.yaml
 global:
   resolve_timeout: 5m
@@ -135,11 +145,12 @@ spec:
   configSecret: alertmanager-main-config
 
 [root@bastion manifest]# oc apply -f patch-alertmanager-secret.yaml
-
 [root@bastion manifest]# oc delete pod -n openshift-monitoring -l app.kubernetes.io/name=alertmanager
+```
 
 ## Validacion
 
+```
 [root@bastion ~]# vim manifest/test-alert.yaml
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
@@ -161,3 +172,4 @@ spec:
 
 [root@bastion ~]# oc apply -f manifest/test-alert.yaml && tail -f /var/log/maillog
 [root@bastion ~]# oc delete -f manifest/test-alert.yaml
+```

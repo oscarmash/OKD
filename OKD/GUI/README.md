@@ -120,3 +120,9 @@ Solución:
 [root@bastion ~]# oc rollout restart deployment/router-default -n openshift-ingress
 [root@bastion ~]# oc rollout restart deployment/oauth-openshift -n openshift-authentication
 ```
+
+**NOTA:** La otra opción es eliminar los contenedores del NS openshift-console
+
+```
+[root@bastion ~]# oc delete pods --all -n openshift-console
+```
