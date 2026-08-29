@@ -14,7 +14,7 @@
 * :construction: [KubeSpray vs OKD](./OKD/KubeSpary-vs-OKD/README.md) *(En construcción)*
 
 #### Instalación y Gestión de Nodos
-* [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md)
+* [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md) :one:
 * [Añadir nodo al clúster de OKD](./OKD/add_worker/README.md)
 * [Configuración de nodos mediante MachineConfig (MCO)](./OKD/MachineConfig/README.md)
 
@@ -23,7 +23,7 @@
 * [Insights](./OKD/insights/README.md)
 
 #### Almacenamiento
-* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md)
+* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :two:
 
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
