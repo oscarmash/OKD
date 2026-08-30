@@ -1,5 +1,11 @@
 # ClusterOperatorDown
 
+En el Dashboard de la consola GUI de OKD, podemos ver el siguiente mensajes: **"ClusterOperatorDown"**
+
+![ClusterOperatorDown](images/ClusterOperatorDown.png)
+
+## ERROR 1 (monitoring)
+
 ```
 [root@bastion ~]# oc get clusteroperators
 NAME                                       VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
@@ -35,3 +41,5 @@ Pasados unos minutos:
 monitoring                                 4.21.0-okd-scos.9   True        False         False      13s
 ...
 ```
+
+## ERROR 2
