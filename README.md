@@ -12,6 +12,7 @@
 
 #### Introducción y Comparativas
 * :construction: [KubeSpray vs OKD](./OKD/KubeSpary-vs-OKD/README.md) *(En construcción)*
+* [Mantenimiento diario](./OKD/mantenimiento-diario/README.md) *(En construcción)*
 
 #### Instalación y Gestión de Nodos
 * [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md) :one:
