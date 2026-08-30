@@ -22,7 +22,8 @@
 * [Consola Web (GUI)](./OKD/GUI/README.md)
 * [Insights](./OKD/insights/README.md)
 * Alertmanager
-  * [Configuración de Alertmanager y Relay SMTP](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
+  * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
+  * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md)
 
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :two:
