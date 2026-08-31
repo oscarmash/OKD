@@ -32,12 +32,12 @@ platform:
         - "OKD-Private-Network"
 networking:
   networkType: OVNKubernetes
-  clusterNetwork:
+  clusterNetwork: # red interna de pods (overlay)
   - cidr: 10.128.0.0/14
     hostPrefix: 23
-  serviceNetwork:
+  serviceNetwork: # para las IPs ClusterIP de los Services de Kubernetes
   - 172.30.0.0/16
-  machineNetwork:
+  machineNetwork: # red física real
   - cidr: 10.26.0.0/24
 fips: false
 pullSecret: '{"auths":{"fake":{"auth":"aG9sYTo="}}}'
