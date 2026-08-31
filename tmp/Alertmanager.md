@@ -12,3 +12,7 @@ control-plane-machine-set                  4.21.0-okd-scos.9   False       False
 No resources found in openshift-machine-api namespace.
 
 Al no existis los objetos, vamos a generarlos a partir del propio ControlPlaneMachineSet.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
