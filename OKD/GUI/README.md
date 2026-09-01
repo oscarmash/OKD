@@ -126,3 +126,35 @@ Solución:
 ```
 [root@bastion ~]# oc delete pods --all -n openshift-console
 ```
+
+### Los contenedores se quedan en pending
+
+```
+[root@bastion ~]# oc get pods -n openshift-ingress
+NAME                              READY   STATUS    RESTARTS      AGE
+router-default-58db8f5f98-489zg   1/1     Running   2             46h
+router-default-58db8f5f98-cqbgb   1/1     Running   3 (16m ago)   46h
+
+[root@bastion ~]# oc get pods -n openshift-console
+NAME                         READY   STATUS    RESTARTS   AGE
+console-5dc5cc5764-t4zps     0/1     Pending   0          2m5s
+console-f7f784879-5d5vj      0/1     Pending   0          2m5s
+console-f7f784879-n62m8      0/1     Pending   0          2m5s
+downloads-7c48fc4584-csxt8   0/1     Pending   0          2m5s
+downloads-7c48fc4584-qkqrs   0/1     Pending   0          2m4s
+
+[root@bastion ~]# oc get pods -n openshift-authentication
+NAME                               READY   STATUS    RESTARTS   AGE
+oauth-openshift-5f6b7b747d-2v9d4   0/1     Pending   0          109s
+oauth-openshift-76657b8dcf-2tx9s   0/1     Pending   0          109s
+oauth-openshift-76657b8dcf-7dx57   0/1     Pending   0          109s
+oauth-openshift-76657b8dcf-wds9z   0/1     Pending   0          109s
+
+[root@bastion ~]# oc get pods -n openshift-authentication-operator
+NAME                                      READY   STATUS    RESTARTS   AGE
+authentication-operator-75564fd8b-5g4f5   0/1     Pending   0          15m
+```
+
+```
+[root@bastion ~]# oc adm taint nodes master1.ilba.cat master2.ilba.cat master3.ilba.cat node.cloudprovider.kubernetes.io/uninitialized-
+```
