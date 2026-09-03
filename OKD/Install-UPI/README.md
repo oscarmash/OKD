@@ -18,7 +18,7 @@
   * [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
     * [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
     * [Aislamiento del Control Plane](#desactivación-del-schedulable-en-nodos-master-aislamiento-del-control-plane)
-    * [Validacción de la instalción](#validacion-de-la-instalacion)
+  * [Validación de la instalación](#validación-de-la-instalación)
 
 
 ## Guía de Instalación OKD Bare-metal / UPI
@@ -375,7 +375,7 @@ worker1.ilba.cat   Ready    worker                 27m   v1.34.4
 worker2.ilba.cat   Ready    worker                 27m   v1.34.4
 ```
 
-#### Validación de la instalación
+### Validación de la instalación
 
 Verificar que todos los operators estén bien
 
