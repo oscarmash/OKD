@@ -18,6 +18,7 @@
   * [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
     * [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
     * [Aislamiento del Control Plane](#desactivación-del-schedulable-en-nodos-master-aislamiento-del-control-plane)
+    * [Validacción de la instalción](#validacion-de-la-instalacion)
 
 
 ## Guía de Instalación OKD Bare-metal / UPI
@@ -373,3 +374,22 @@ master3.ilba.cat   Ready    control-plane,master   65m   v1.34.4
 worker1.ilba.cat   Ready    worker                 27m   v1.34.4
 worker2.ilba.cat   Ready    worker                 27m   v1.34.4
 ```
+
+#### Validación de la instalación
+
+Verificar que todos los operators estén bien
+
+```
+[root@bastion ~]# oc get co
+```
+
+Validar que no haya ningún error en la GUI de OKD
+
+```
+[root@bastion ~]# cat /root/cluster-okd/auth/kubeadmin-password
+i62yI-b8w8b-toW6G-uNPKk
+```
+
+[Validación GUI](https://console-openshift-console.apps.okd.ilba.cat/)
+* Dashboard
+* Alertas
