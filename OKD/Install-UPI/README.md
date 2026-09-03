@@ -247,6 +247,12 @@ Quitamos la marca de "uninitialized" de los masters para que pueda desplegar los
 [root@bastion ~]# oc adm taint nodes master3.ilba.cat node.cloudprovider.kubernetes.io/uninitialized-
 ```
 
+Esto es para evitar que el clúster marque el operador control-plane-machine-set (operador que se encarga de supervisar y reemplazar automáticamente las máquinas de los nodos máster) en estado degradado (DEGRADED: True) debido a cómo funciona la arquitectura UPI.
+
+```
+[root@bastion ~]# oc patch controlplanemachineset cluster -n openshift-machine-api --type merge -p '{"spec":{"state":"Inactive"}}'
+```
+
 El siguiente contenedor tarda unos 5m desde aprovar los certificados en aparecer
 
 ```
