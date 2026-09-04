@@ -110,6 +110,9 @@ oc create secret generic htpass-secret \
 ```
 
 ```
+[root@bastion ~]# oc whoami
+nuria.ilari
+
 [root@bastion ~]# oc get nodes
 Error from server (Forbidden): nodes is forbidden: User "nuria.ilari" cannot list resource "nodes" in API group "" at the cluster scope
 
