@@ -5,8 +5,7 @@
 * [Despliegue de Prueba (PVC y Pod)](#despliegue-de-prueba-pvc-y-pod)
 * [Procedimientos de Troubleshooting](#procedimientos-de-troubleshooting)
   * [VSphereCSIDriverOperatorCRDegraded](#vspherecsidriveroperatorcrdegraded)
-    * [node master1.ilba.cat is not a vSphere node: providerID "" does not have the expected vSphere prefix "vsphere://"](#node-master1ilbacat-is-not-a-vsphere-node-providerid--does-not-have-the-expected-vsphere-prefix-vsphere)
-    * [unable to find VM master2.ilba.cat by UUID 37021342-7b2b-a5d8-9bf8-c94042a78d4f](#unable-to-find-vm-master2ilbacat-by-uuid-37021342-7b2b-a5d8-9bf8-c94042a78d4f)
+  * [unable to find VM master2.ilba.cat by UUID 37021342-7b2b-a5d8-9bf8-c94042a78d4f](#unable-to-find-vm-master2ilbacat-by-uuid-37021342-7b2b-a5d8-9bf8-c94042a78d4f)
 
 ## Habilitar `disk.EnableUUID` en vSphere
 
@@ -104,9 +103,6 @@ test-pvc   Bound    pvc-8e308c36-cde7-4ffb-9352-981862fb246d   1Gi        RWO   
 
 ### VSphereCSIDriverOperatorCRDegraded
 
-
-#### node master1.ilba.cat is not a vSphere node: providerID "" does not have the expected vSphere prefix "vsphere://"
-
 **Problema:**
 
 El operador de almacenamiento muestra un estado DEGRADED=True indicando que los nodos no tienen el formato de providerID esperado por vSphere (vsphere://<UUID>):
@@ -151,7 +147,7 @@ NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSA
 storage   4.21.0-okd-scos.9   True        False         False      53s
 ```
 
-#### unable to find VM master2.ilba.cat by UUID 37021342-7b2b-a5d8-9bf8-c94042a78d4f
+### unable to find VM master2.ilba.cat by UUID 37021342-7b2b-a5d8-9bf8-c94042a78d4f
 
 **Problema:**
 
