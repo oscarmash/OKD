@@ -1,23 +1,3 @@
-## Índice
-
-- [ClusterOperatorDown](#clusteroperatordown)
-  - [control-plane-machine-set](#control-plane-machine-set)
-  - [dns](#dns)
-  - [csi-snapshot-controller](#csi-snapshot-controller)
-  - [service-ca](#service-ca)
-  - [olm](#olm)
-  - [monitoring](#monitoring)
-  - [machine-config](#machine-config)
-
-# ClusterOperatorDown
-
-En el Dashboard de la consola GUI de OKD, podemos ver el siguiente mensajes: **"ClusterOperatorDown"**
-
-![ClusterOperatorDown](images/ClusterOperatorDown.png)
-
-## control-plane-machine-set
-
-```
 [root@bastion ~]# oc get co control-plane-machine-set
 NAME                        VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 control-plane-machine-set   4.21.0-okd-scos.9   False       False         True       19h     Missing 3 available replica(s)
@@ -27,11 +7,9 @@ control-plane-machine-set   4.21.0-okd-scos.9   False       False         True  
 [root@bastion ~]# oc get co control-plane-machine-set
 NAME                        VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 control-plane-machine-set   4.21.0-okd-scos.9   True        False         False      16s
-```
 
-## dns
+----------------------------------------------------------------------------------------------------------------------------
 
-```
 [root@bastion ~]#  oc get co dns
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 dns    4.21.0-okd-scos.9   True        True          False      19h     DNS "default" reports Progressing=True: "Have 6 available DNS pods, want 7."
@@ -58,11 +36,9 @@ node-resolver-tmkrn   1/1     Running   1             68m   10.26.0.12    master
 [root@bastion ~]# oc get co dns
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 dns    4.21.0-okd-scos.9   True        False         False      19h
-```
 
-## csi-snapshot-controller
+----------------------------------------------------------------------------------------------------------------------------
 
-```
 [root@bastion ~]# oc get co csi-snapshot-controller
 NAME                      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 csi-snapshot-controller   4.21.0-okd-scos.9   False       False         False      3m14s   CSISnapshotControllerAvailable: Waiting for Deployment
@@ -72,11 +48,9 @@ csi-snapshot-controller   4.21.0-okd-scos.9   False       False         False   
 [root@bastion ~]# oc get co csi-snapshot-controller
 NAME                      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 csi-snapshot-controller   4.21.0-okd-scos.9   True        False         False      14s
-```
 
-## service-ca
+----------------------------------------------------------------------------------------------------------------------------
 
-```
 [root@bastion ~]# oc get co service-ca
 NAME         VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 service-ca   4.21.0-okd-scos.9   True        True          False      19h     Progressing: ...
@@ -87,33 +61,27 @@ service-ca   4.21.0-okd-scos.9   True        True          False      19h     Pr
 [root@bastion ~]# oc get co service-ca
 NAME         VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 service-ca   4.21.0-okd-scos.9   True        False         False      19h
-```
 
-## olm
+----------------------------------------------------------------------------------------------------------------------------
 
 El operador olm gestiona dos componentes independientes:
 * catalogd
 * operator-controller
 
-```
 [root@bastion ~]# oc get co olm
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 olm    4.21.0-okd-scos.9   False       False         False      74m     CatalogdDeploymentCatalogdControllerManagerAvailable: Waiting for Deployment...
-```
 
 **catalogd**
 
-```
 [root@bastion ~]# oc rollout restart deployment/catalogd-controller-manager -n openshift-catalogd
 
 [root@bastion ~]# oc get pods -n openshift-catalogd
 NAME                                          READY   STATUS    RESTARTS   AGE
 catalogd-controller-manager-b5b8c6b9f-r8lpd   1/1     Running   0          3m50s
-```
 
 **openshift-operator-controller**
 
-```
 [root@bastion ~]# oc rollout restart deployment/operator-controller-controller-manager -n openshift-operator-controller
 
 [root@bastion ~]# oc get pods -n openshift-operator-controller
@@ -123,12 +91,9 @@ operator-controller-controller-manager-f88b988bc-878gh   1/1     Running   0    
 [root@bastion ~]# oc get co olm
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 olm    4.21.0-okd-scos.9   True        False         False      68s
-```
 
-## monitoring
+----------------------------------------------------------------------------------------------------------------------------
 
-
-```
 [root@bastion ~]# oc get co monitoring
 NAME         VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 monitoring   4.21.0-okd-scos.9   False       True          True       68m     UpdatingPrometheusOperator: reconciling Prometheus Operator Admission Webhook Deployment failed: updating Deployment object failed: waiting for DeploymentRollout of openshift-monitoring/prometheus-operator-admission-webhook: context deadline exceeded: got 1 unavailable replicas
@@ -145,11 +110,9 @@ prometheus-operator-admission-webhook-9d5d9d98b-vw2k2   1/1     Running         
 [root@bastion ~]# oc get co monitoring
 NAME         VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 monitoring   4.21.0-okd-scos.9   True        False         False      28s
-```
 
-## machine-config
+----------------------------------------------------------------------------------------------------------------------------
 
-```
 [root@bastion ~]# oc get co machine-config
 NAME             VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 machine-config   4.21.0-okd-scos.9   True        False         True       20h     Failed to resync 4.21.0-okd-scos.9 because: error during waitForControllerConfigToBeCompleted: [context deadline exceeded, controllerconfig is not completed: status for ControllerConfig machine-config-controller is being reported for 2, expecting it for 3]
@@ -158,4 +121,4 @@ machine-config   4.21.0-okd-scos.9   True        False         True       20h   
 NAME     CONFIG                                             UPDATED   UPDATING   DEGRADED   MACHINECOUNT   READYMACHINECOUNT   UPDATEDMACHINECOUNT   DEGRADEDMACHINECOUNT   AGE
 master   rendered-master-40e731a6229544cde9d572c9816da07a   False     True       False      3              1                   1                     0                      20h
 worker   rendered-worker-35819a03217b78066601f159b430dcea   True      False      False      4              4                   4                     0                      20h
-```
+
