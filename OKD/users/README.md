@@ -2,7 +2,7 @@
 
 - [Crear un usuario administrador](#crear-un-usuario-administrador)
 - [Crear un usuario](#crear-un-usuario)
-
+- [Volver al contexto de admin](#volver-al-contexto-de-admin)
 # Crear un usuario administrador
 
 Crear un usuario administrador como el *kubeadmin*
@@ -118,4 +118,21 @@ Error from server (Forbidden): nodes is forbidden: User "nuria.ilari" cannot lis
 
 [root@bastion ~]# oc get pods
 No resources found in test-limit-user namespace
+```
+
+# Volver al contexto de *admin*
+
+```
+[root@bastion ~]# oc config get-contexts
+CURRENT   NAME                                                CLUSTER                 AUTHINFO                            NAMESPACE
+          admin                                               okd                     admin
+          default/api-okd-ilba-cat:6443/oscar.mas             api-okd-ilba-cat:6443   oscar.mas/api-okd-ilba-cat:6443     default
+*         test-limit-user/api-okd-ilba-cat:6443/nuria.ilari   api-okd-ilba-cat:6443   nuria.ilari/api-okd-ilba-cat:6443   test-limit-user
+          test-limit-user/api-okd-ilba-cat:6443/oscar.mas     api-okd-ilba-cat:6443   oscar.mas/api-okd-ilba-cat:6443     test-limit-user
+```
+
+```
+[root@bastion ~]# oc config use-context admin
+[root@bastion ~]# oc whoami
+system:admin
 ```
