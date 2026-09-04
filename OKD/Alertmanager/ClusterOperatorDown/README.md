@@ -8,6 +8,7 @@
   - [olm](#olm)
   - [monitoring](#monitoring)
   - [machine-config](#machine-config)
+  - [kube-apiserver](#kube-apiserver)
 
 # ClusterOperatorDown
 
@@ -159,3 +160,15 @@ NAME     CONFIG                                             UPDATED   UPDATING  
 master   rendered-master-40e731a6229544cde9d572c9816da07a   False     True       False      3              1                   1                     0                      20h
 worker   rendered-worker-35819a03217b78066601f159b430dcea   True      False      False      4              4                   4                     0                      20h
 ```
+
+## kube-apiserver
+
+```
+[root@bastion ~]# oc get co kube-apiserver
+NAME             VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
+kube-apiserver   4.21.0-okd-scos.9   True        True          False      22h     NodeInstallerProgressing: 1 node is at revision 9; 2 nodes are at revision 10
+```
+
+Este mensaje no es un error crítico, sino un estado informativo normal de OpenShift/OKD.
+
+Indica que el operador de la API de Kubernetes (kube-apiserver) está realizando un despliegue progresivo (rollout) de una nueva configuración en los nodos del plano de control (control-plane / másters).
