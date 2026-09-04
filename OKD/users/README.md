@@ -1,3 +1,8 @@
+## Índice
+
+- [Crear un usuario administrador](#crear-un-usuario-administrador)
+- [Crear un usuario](#crear-un-usuario)
+
 # Crear un usuario administrador
 
 Crear un usuario administrador como el *kubeadmin*
@@ -76,3 +81,38 @@ worker4.ilba.cat   Ready    worker                 22h     v1.34.4
 Una vez hecho, veremos que tenemos dos opciones de hacer login:
 
 ![Login](images/login-OKD.png)
+
+# Crear un usuario
+
+Crear usuario tenga acceso únicamente al proyecto test-limit-user y a su namespace subyacente.
+
+```
+[root@bastion ~]# oc new-project test-limit-user --description="Proyecto con acceso limitado" --display-name="Test Limit User"
+```
+
+Crear el usuario en HTPasswd y actualizar el Secret (sin -c para no sobrescribir a oscar.mas):
+
+```
+[root@bastion ~]# htpasswd -B -b /root/manifest/users.htpasswd nuria.ilari Password123
+```
+
+```
+oc create secret generic htpass-secret \
+  --from-file=htpasswd=/root/manifest/users.htpasswd \
+  -n openshift-config \
+  --dry-run=client -o yaml | oc apply -f -
+```
+
+```
+[root@bastion ~]# oc adm policy add-role-to-user admin nuria.ilari -n test-limit-user
+
+[root@bastion ~]# oc login https://api.okd.ilba.cat:6443 -u nuria.ilari -p Password123 --insecure-skip-tls-verify=true
+```
+
+```
+[root@bastion ~]# oc get nodes
+Error from server (Forbidden): nodes is forbidden: User "nuria.ilari" cannot list resource "nodes" in API group "" at the cluster scope
+
+[root@bastion ~]# oc get pods
+No resources found in test-limit-user namespace
+```
