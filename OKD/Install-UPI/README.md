@@ -377,19 +377,39 @@ worker2.ilba.cat   Ready    worker                 27m   v1.34.4
 
 ### Validación de la instalación
 
+
+#### Nodes
+
+```
+[root@bastion ~]# oc get nodes
+NAME               STATUS   ROLES                  AGE   VERSION
+master1.ilba.cat   Ready    control-plane,master   66m   v1.34.4
+master2.ilba.cat   Ready    control-plane,master   66m   v1.34.4
+master3.ilba.cat   Ready    control-plane,master   65m   v1.34.4
+worker1.ilba.cat   Ready    worker                 27m   v1.34.4
+worker2.ilba.cat   Ready    worker                 27m   v1.34.4
+```
+
+#### Operators
+
 Verificar que todos los operators estén bien
 
 ```
 [root@bastion ~]# oc get co
 ```
 
-Validar que no haya ningún error en la GUI de OKD
+#### GUI
+
+Validar que no haya ningún error en la [GUI](https://console-openshift-console.apps.okd.ilba.cat/) de OKD:
+
+* Username: kubeadmin
+* Password: *cat /root/cluster-okd/auth/kubeadmin-password*
 
 ```
 [root@bastion ~]# cat /root/cluster-okd/auth/kubeadmin-password
 i62yI-b8w8b-toW6G-uNPKk
 ```
 
-[Validación GUI](https://console-openshift-console.apps.okd.ilba.cat/)
+Validación GUI
 * Dashboard
 * Alertas
