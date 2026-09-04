@@ -24,10 +24,10 @@
 * [Insights](./OKD/insights/README.md)
 * Alertmanager
   * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
-  * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md)
+  * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md) :two:
 
 #### Almacenamiento
-* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :two:
+* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
 
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
