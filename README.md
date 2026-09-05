@@ -26,6 +26,8 @@
 * Alertmanager
   * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
   * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md) :two:
+* Instalar Apps
+  * [LibreNMS](./OKD/APPS/LibreNMS/README.md)
 
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
