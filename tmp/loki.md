@@ -80,7 +80,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: create-loki-bucket
-  namespace: openshift-logging
+  namespace: ilba-minio
 spec:
   template:
     spec:
