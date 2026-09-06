@@ -23,6 +23,7 @@
 * [Creación de usuarios](./OKD/users/README.md)
 * [Consola Web (GUI)](./OKD/GUI/README.md)
 * [Insights](./OKD/insights/README.md)
+* [Thanos](./OKD/Thanos/README.md)
 * Alertmanager
   * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
   * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md) :two:
