@@ -384,6 +384,8 @@ ts=2026-09-05T11:28:45.292774046Z caller=blocks_cleaner.go:58 level=info msg="cl
 ts=2026-09-05T11:29:45.30226098Z caller=fetcher.go:627 level=info component=block.BaseFetcher msg="successfully synchronized block metadata" duration=16.646473ms duration_ms=16 cached=0 returned=0 partial=0
 ```
 
+![Inicio](images/Thanos-0.png)
+
 > Hay que esperar 2h :arrow_down:
 
 La interfaz cargará vacía inicialmente o con el bucket en estado sincronizado; en cuanto se cumpla la ventana de 2 horas y Prometheus suba el primer bloque TSDB, la web empezará a dibujar las barras y los bloques ULID automáticamente tal como en tu captura.
@@ -391,3 +393,4 @@ La interfaz cargará vacía inicialmente o con el bucket en estado sincronizado;
 Enlace de acceso a la consola: [https://bucketinfo.172.26.0.12.nip.io/blocks](https://bucketinfo.172.26.0.12.nip.io/blocks)
 
 
+![Final](images/Thanos-1.png)
