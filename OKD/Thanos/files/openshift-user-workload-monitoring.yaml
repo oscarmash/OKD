@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thanos-objectstorage
+  namespace: openshift-user-workload-monitoring
+type: Opaque
+stringData:
+  thanos.yaml: |
+    type: s3
+    config:
+      bucket: thanos
+      endpoint: minio-loki.ilba-minio.svc.cluster.local:9000
+      insecure: true
+      access_key: "lokiaccesskey"
+      secret_key: "lokisecretpassword"
+      http_config:
+        insecure_skip_verify: true
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-workload-monitoring-config
+  namespace: openshift-user-workload-monitoring
+data:
+  config.yaml: |
+    prometheus:
+      retention: 24h
+      volumeClaimTemplate:
+        spec:
+          storageClassName: thin-csi
+          resources:
+            requests:
+              storage: 15Gi
+    thanosRuler:
+      retention: 24h

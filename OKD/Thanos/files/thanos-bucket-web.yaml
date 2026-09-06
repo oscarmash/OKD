@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-bucket-web
+  namespace: openshift-monitoring
+  labels:
+    app.kubernetes.io/name: thanos-bucket-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: thanos-bucket-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: thanos-bucket-web
+    spec:
+      containers:
+      - name: bucket-web
+        image: quay.io/thanos/thanos:v0.37.2
+        args:
+        - tools
+        - bucket
+        - web
+        - --objstore.config-file=/etc/thanos/thanos.yaml
+        - --http-address=0.0.0.0:10902
+        - --refresh=2m
+        ports:
+        - name: http
+          containerPort: 10902
+        volumeMounts:
+        - name: config
+          mountPath: /etc/thanos
+      volumes:
+      - name: config
+        secret:
+          secretName: thanos-objectstorage
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thanos-bucket-web
+  namespace: openshift-monitoring
+  labels:
+    app.kubernetes.io/name: thanos-bucket-web
+spec:
+  ports:
+  - name: http
+    port: 10902
+    targetPort: 10902
+  selector:
+    app.kubernetes.io/name: thanos-bucket-web
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: thanos-bucket-web
+  namespace: openshift-monitoring
+spec:
+  host: bucketinfo.172.26.0.12.nip.io
+  to:
+    kind: Service
+    name: thanos-bucket-web
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

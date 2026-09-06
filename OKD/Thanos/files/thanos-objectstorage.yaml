@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thanos-objectstorage
+  namespace: openshift-monitoring
+type: Opaque
+stringData:
+  thanos.yaml: |
+    type: s3
+    config:
+      bucket: thanos
+      endpoint: minio-loki.ilba-minio.svc.cluster.local:9000
+      insecure: true
+      access_key: "lokiaccesskey"
+      secret_key: "lokisecretpassword"
+      http_config:
+        insecure_skip_verify: true
