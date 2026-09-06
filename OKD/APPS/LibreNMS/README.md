@@ -27,11 +27,10 @@ oc adm policy add-scc-to-user privileged -z default -n ilba-librenms
 ```
 [root@bastion ~]# vim manifest/values-librenms.yaml
 librenms:
-  timezone: Europe/Madrid
   privileged: true
 ingress:
   enabled: true
-  className: "openshift-default"
+  className: openshift-default
   hosts:
     - host: librenms.172.26.0.12.nip.io
       paths:
@@ -49,9 +48,18 @@ librenms librenms/librenms \
 ```
 
 ```
+[root@bastion ~]# oc get pods -n ilba-librenms
+NAME                                  READY   STATUS    RESTARTS   AGE
+librenms-frontend-6c77665856-frsbr    1/1     Running   0          16m
+librenms-mysql-0                      1/1     Running   0          16m
+librenms-poller-0                     1/1     Running   0          16m
+librenms-redis-0                      1/1     Running   0          16m
+librenms-rrdcached-6f48c6b95f-fzgkk   1/1     Running   0          16m
+
 [root@bastion ~]# oc -n ilba-librenms get ingress
 NAME       CLASS               HOSTS                         ADDRESS                            PORTS   AGE
 librenms   openshift-default   librenms.172.26.0.12.nip.io   router-default.apps.okd.ilba.cat   80      4m21s
+
 ```
 
 Datos de acceso:
@@ -67,5 +75,24 @@ Datos de acceso:
 Validaciones:
 
 ```
-[root@bastion ~]# oc exec -it librenms-poller-0 -n ilba-librenms -- ping -c 2 172.26.0.6
+[root@bastion ~]# oc exec -it librenms-poller-0 -n ilba-librenms -- su -s /bin/sh librenms -c "php /opt/librenms/validate.php"
+```
+
+```
+[root@bastion ~]# oc exec -it librenms-poller-0 -n ilba-librenms -- fping 10.26.0.1 172.26.0.6 172.26.0.7 172.26.0.8
+Defaulted container "poller" out of: poller, init (init)
+10.26.0.1 is alive
+172.26.0.6 is alive
+172.26.0.7 is alive
+172.26.0.8 is alive
+```
+
+```
+[root@bastion ~]# oc exec -it librenms-poller-0 -n ilba-librenms -- snmpget -v2c -c ilba 10.26.0.1 sysUpTime.0
+Defaulted container "poller" out of: poller, init (init)
+DISMAN-EVENT-MIB::sysUpTimeInstance = Timeticks: (547478) 1:31:14.78
+```
+
+```
+[root@bastion ~]# oc logs librenms-poller-0 -n ilba-librenms -c poller --tail=20 -f
 ```
