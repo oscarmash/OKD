@@ -27,6 +27,8 @@
 * Alertmanager
   * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
   * [ClusterOperatorDown](./OKD/Alertmanager/ClusterOperatorDown/README.md) :two:
+* CI/CD
+  * [ArgoCD](./OKD/CI_CD/ArgoCD/README.md)
 * Instalar Apps
   * [LibreNMS](./OKD/APPS/LibreNMS/README.md)
   * [MinIO](./OKD/APPS/MinIO/README.md)
