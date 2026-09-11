@@ -5,6 +5,10 @@
   - [Verificación del registry](#verificación-del-registry)
   - [Login al Registry](#login-al-registry)
 
+Datos del Registry de OpenShift/OKD
+* Por Namespace (Aislamiento por defecto): Toda imagen subida a <registro>/<mi-namespace>/<imagen>:<tag> es privada para dicho proyecto. Otros namespaces no pueden consumirla a menos que se les otorgue el rol system:image-puller explícitamente en ese proyecto.
+* Namespace Global (openshift): Las imágenes subidas a <registro>/openshift/<imagen>:<tag> son automáticamente públicas y de solo lectura para todos los usuarios y pods de cualquier namespace del clúster.
+
 ## Añadir storage persistente al Registry
 
 El registry de OKD, al ser un despliegue sobre VMware/UPI arranca en estado Removed porque no tiene ningún disco asignado donde guardar las capas de las imágenes, lo que hemos de hacer es asignarle un CSI, para que se puedan guardar los datos:
@@ -104,10 +108,5 @@ Login Succeeded!
 NAME     IMAGE REPOSITORY                                   TAGS     UPDATED
 alpine   registry.172.26.0.12.nip.io/test-registry/alpine   latest   50 seconds ago
 ```
-
-Datos del Registry de OpenShift/OKD
-* Por Namespace (Aislamiento por defecto): Toda imagen subida a <registro>/<mi-namespace>/<imagen>:<tag> es privada para dicho proyecto. Otros namespaces no pueden consumirla a menos que se les otorgue el rol system:image-puller explícitamente en ese proyecto.
-* Namespace Global (openshift): Las imágenes subidas a <registro>/openshift/<imagen>:<tag> son automáticamente públicas y de solo lectura para todos los usuarios y pods de cualquier namespace del clúster.
-
 
 ![Registry](images/registry.png)
