@@ -1,0 +1,16 @@
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonConfig
+metadata:
+  name: config
+spec:
+  targetNamespace: openshift-pipelines
+  pipeline:
+    params: []
+  result:
+    disabled: true
+  pruner:
+    resources:
+      - pipelinerun
+      - taskrun
+    keep: 3
+    schedule: "0 8 * * *"

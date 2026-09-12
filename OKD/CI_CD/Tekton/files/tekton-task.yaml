@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: build-php-app
+  namespace: test-build
+spec:
+  params:
+    - name: IMAGE_TAG
+      type: string
+      description: "Etiqueta / versión de la aplicación"
+      default: "v0.0.2"
+    - name: IMAGE_NAME
+      type: string
+      description: "Nombre del ImageStream en OKD"
+      default: "app-php"
+  steps:
+    - name: generate-and-build
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      script: |
+        #!/usr/bin/env bash
+        set -e
+
+        TAG="$(params.IMAGE_TAG)"
+        NAME="$(params.IMAGE_NAME)"
+        REGISTRY="image-registry.openshift-image-registry.svc:5000/test-build/${NAME}:${TAG}"
+
+        echo "=== Iniciando compilacion de ${NAME} con tag: ${TAG} ==="
+
+        # 1. Crear el codigo fuente PHP
+        cat << PHP > index.php
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Prueba OKD Tekton + CI/CD</title>
+          <style>
+            body { font-family: sans-serif; background: #0f172a; color: #f8fafc; text-align: center; padding: 50px; }
+            .card { background: #1e293b; padding: 30px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
+            h1 { color: #38bdf8; }
+            .badge { background: #10b981; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Aplicacion PHP compilada con Tekton</h1>
+            <p><span class="badge">ESTADO: MOTOR CI/CD OPERATIVO</span></p>
+            <p><strong>Host / Pod:</strong> <?php echo gethostname(); ?></p>
+            <p><strong>Fecha/Hora servidor:</strong> <?php echo date('Y-m-d H:i:s'); ?></p>
+            <p><strong>Version PHP:</strong> <?php echo phpversion(); ?></p>
+            <p><strong>Version APP:</strong> ${TAG}</p>
+          </div>
+        </body>
+        </html>
+        PHP
+
+        # 2. Crear el Containerfile apuntando al DocumentRoot oficial de UBI PHP
+        cat << 'DOCKERFILE' > Containerfile
+        FROM registry.access.redhat.com/ubi9/php-81:latest
+        COPY index.php /opt/app-root/src/index.php
+        COPY index.php /var/www/html/index.php
+        EXPOSE 8080
+        CMD ["container-entrypoint", "/usr/libexec/s2i/run"]
+        DOCKERFILE
+
+        # 3. Compilar la imagen con Buildah
+        buildah bud --tls-verify=false -t "${REGISTRY}" .
+
+        # 4. Subir la imagen al registro interno de OKD
+        buildah push --tls-verify=false "${REGISTRY}"

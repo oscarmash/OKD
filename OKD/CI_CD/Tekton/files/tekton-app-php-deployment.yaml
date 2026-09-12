@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-php
+  namespace: test-build
+  labels:
+    app: app-php
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-php
+  template:
+    metadata:
+      labels:
+        app: app-php
+    spec:
+      containers:
+        - name: php-web
+          # Referencia a la imagen dentro del registro interno de OKD
+          image: image-registry.openshift-image-registry.svc:5000/test-build/app-php:v0.0.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-php
+  namespace: test-build
+  labels:
+    app: app-php
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: app-php
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: app-php
+  namespace: test-build
+spec:
+  # Host con tu dominio nip.io
+  host: app-php.172.26.0.12.nip.io
+  to:
+    kind: Service
+    name: app-php
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

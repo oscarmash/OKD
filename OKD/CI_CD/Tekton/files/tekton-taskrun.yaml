@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: TaskRun
+metadata:
+  generateName: run-build-php-
+  namespace: test-build
+spec:
+  serviceAccountName: pipeline
+  taskRef:
+    name: build-php-app
+  params:
+    - name: IMAGE_TAG
+      value: "v0.0.2"
