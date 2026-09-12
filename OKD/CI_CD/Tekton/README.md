@@ -1,12 +1,13 @@
 ## Índice
 
 * [Instalación de Tekton](#instalación-de-tekton)
-* [Aplicación de prueba](#aplicación-de-prueba)
+* [Compilación directa con código embebido (Inline Task)](#compilación-directa-con-código-embebido-inline-task)
   * [Creación del proyecto](#creación-del-proyecto)
   * [Creación de la Task](#creación-de-la-task)
   * [Lanzar el TaskRun](#lanzar-el-taskrun)
   * [Desplegar la aplicación](#desplegar-la-aplicación)
   * [Cambio de versión de la APP](#cambio-de-versión-de-la-app)
+* [Pipeline CI completo con GitHub y PVC Workspace](#pipeline-ci-completo-con-github-y-pvc-workspace)
 
 El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
 
@@ -101,7 +102,7 @@ NAME     VERSION   READY   REASON
 result   v0.16.0   True
 ```
 
-# Aplicación de prueba
+# Compilación directa con código embebido (Inline Task)
 
 Antes de emepzar este paso, hemos de tener el registry de OKD (en nuestro caso) o cualquier otro registry, para poder subir las imágenes
 
@@ -340,3 +341,21 @@ Vamos a pasar de la versión v0.0.2 a la v0.0.68. Como podrás observar sólo se
 ```
 
 ![Tekton v0.0.68](images/tekton-v0068.png)
+
+
+# Pipeline CI completo con GitHub y PVC Workspace
+
+Concepto del flujo de trabajo
+
+```
+[ Repositorio GitHub ]
+            │
+            ▼ (git clone)
+   [ Task 1: git-clone ]  ──(Escribe archivos)──► [ PVC / Storage ] 
+                                                      │ (thin-csi)
+   [ Task 2: buildah   ]  ◄──(Lee archivos)───────┘
+            │
+            ▼ (buildah bud & push)
+[ Registro interno de OKD ]
+```
+
