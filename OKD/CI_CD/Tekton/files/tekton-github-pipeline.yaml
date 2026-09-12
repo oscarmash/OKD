@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: php-github-pipeline
+  namespace: test-build-github
+spec:
+  params:
+    - name: git-url
+      type: string
+      default: "https://github.com/oscarmash/testing.git"
+    - name: git-revision
+      type: string
+      default: "main"
+    - name: image-tag
+      type: string
+      default: "v1.0.0"
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+
+    - name: build-image
+      taskRef:
+        name: buildah-from-git
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE_TAG
+          value: $(params.image-tag)

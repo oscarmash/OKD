@@ -1,0 +1,26 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: run-php-github-
+  namespace: test-build-github
+spec:
+  serviceAccountName: pipeline
+  pipelineRef:
+    name: php-github-pipeline
+  params:
+    - name: git-url
+      value: "https://github.com/oscarmash/testing.git"
+    - name: git-revision
+      value: "main"
+    - name: image-tag
+      value: "v1.0.0"
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: thin-csi
+          resources:
+            requests:
+              storage: 5Gi

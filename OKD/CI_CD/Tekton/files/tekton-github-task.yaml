@@ -1,0 +1,76 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: test-build-github
+spec:
+  workspaces:
+    - name: output
+      description: "Directorio donde se descargará el repositorio"
+  params:
+    - name: url
+      type: string
+      description: "URL del repositorio GitHub"
+    - name: revision
+      type: string
+      default: "main"
+      description: "Rama a clonar"
+  steps:
+    - name: clone
+      image: alpine/git:latest
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        echo "=== Clonando $(params.url) rama $(params.revision) ==="
+        rm -rf ./* ./.[!.]*
+        git clone --depth 1 -b $(params.revision) $(params.url) .
+        echo "=== Repositorio descargado en el Workspace ==="
+        ls -la
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: buildah-from-git
+  namespace: test-build-github
+spec:
+  params:
+    - name: IMAGE_NAME
+      type: string
+      default: "app-php"
+    - name: IMAGE_TAG
+      type: string
+      default: "v1.0.0"
+  workspaces:
+    - name: source
+      description: "Workspace compartido donde reside el repositorio"
+  steps:
+    - name: build-and-push
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      workingDir: $(workspaces.source.path)/tekton/codigo
+      script: |
+        #!/usr/bin/env bash
+        set -e
+
+        DEST="image-registry.openshift-image-registry.svc:5000/test-build-github/$(params.IMAGE_NAME):$(params.IMAGE_TAG)"
+
+        echo "=== Directorio de compilación: $(pwd) ==="
+        ls -la
+
+        echo "=== Compilando imagen con Buildah ==="
+        buildah bud --tls-verify=false -t "${DEST}" .
+
+        echo "=== Detectando credenciales del Registry interno ==="
+        # Busca el fichero dockercfg montado automáticamente por OpenShift
+        DOCKER_CONFIG_FILE=$(find /var/run/secrets/tekton.dev/serviceaccount /var/run/secrets/openshift.io/push /var/run/secrets/kubernetes.io -name ".dockercfg" -o -name "config.json" 2>/dev/null | head -n 1)
+
+        if [ -n "${DOCKER_CONFIG_FILE}" ]; then
+          echo "Usando archivo de credenciales: ${DOCKER_CONFIG_FILE}"
+          buildah push --authfile "${DOCKER_CONFIG_FILE}" --tls-verify=false "${DEST}"
+        else
+          echo "Usando token directo de ServiceAccount..."
+          TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+          buildah push --creds "builder:${TOKEN}" --tls-verify=false "${DEST}"
+        fi

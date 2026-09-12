@@ -359,3 +359,125 @@ Concepto del flujo de trabajo
 [ Registro interno de OKD ]
 ```
 
+## Repositorio GitHub
+
+En nuestro repositorio git (github.com:oscarmash/testing.git), publicamos el código de la aplicación:
+
+```
+$ tree
+.
+├── README.md
+└── tekton
+    └── codigo
+        ├── Containerfile
+        └── index.php
+```
+
+## Creamos el proyecto y configurar permisos
+
+```
+[root@bastion ~]# oc new-project test-build-github --description="CI/CD Tekton desde GitHub" --display-name="Test Build GitHub"
+[root@bastion ~]# oc create sa pipeline -n test-build-github
+```
+
+```
+[root@bastion ~]# oc adm policy add-scc-to-user privileged -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user edit -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user system:image-builder -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user registry-editor -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user system:image-builder -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user registry-editor -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user edit -z pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user system:image-builder system:serviceaccount:test-build-github:pipeline -n test-build-github
+[root@bastion ~]# oc adm policy add-role-to-user registry-editor system:serviceaccount:test-build-github:pipeline -n test-build-github
+```
+
+## Creamos la Task git-clone y la pipeline
+
+Los tres archivos representan los tres niveles de abstracción de Tekton: 
+* tekton-github-task.yaml: la definición de los pasos individuales (Tasks)
+* tekton-github-pipeline.yaml: la orquestación secuencial (Pipeline)
+* tekton-github-pipeline-run.yaml: la ejecución real con parámetros y almacenamiento (PipelineRun)
+
+```
+[ tekton-github-pipeline-run.yaml ]
+   ├── Parámetros: git-url, revision, tag (v1.0.0)
+   ├── ServiceAccount: pipeline
+   └── Workspace: PVC dinámico 5Gi (thin-csi en vSphere) ──┐
+                                                           │
+                                                           ▼ (Se inyecta como 'shared-workspace')
+ [ tekton-github-pipeline.yaml ]                           │
+   ├── Recibe parámetros y el workspace 'shared-workspace' │
+   │                                                       │
+   ├── Tarea 1: fetch-repository (git-clone) ◄─────────────┤ (output -> shared-workspace)
+   │     - Clona en $(workspaces.output.path)              │
+   │                                                       │
+   └── Tarea 2: build-image (buildah-from-git) ◄───────────┘ (source -> shared-workspace)
+         - Espera a Tarea 1 (runAfter)
+         - Compila en $(workspaces.source.path)/tekton/codigo
+         - Push a image-registry.openshift-image-registry.svc:5000/test-build-github/app-php:v1.0.0
+```
+
+```
+[root@bastion ~]# vim manifest/tekton-github-task.yaml
+```
+
+```
+[root@bastion ~]# vim manifest/tekton-github-pipeline.yaml
+```
+
+```
+[root@bastion ~]# vim manifest/tekton-github-pipeline-run.yaml
+```
+
+```
+[root@bastion ~]# oc apply -f manifest/tekton-github-task.yaml
+[root@bastion ~]# oc apply -f manifest/tekton-github-pipeline.yaml
+[root@bastion ~]# oc create -f manifest/tekton-github-pipeline-run.yaml
+```
+
+```
+[root@bastion ~]# oc -n test-build-github get pods
+NAME                                        READY   STATUS      RESTARTS   AGE
+affinity-assistant-f088bb4a9d-0             1/1     Running     0          70s
+run-php-github-xnv6s-build-image-pod        1/1     Running     0          38s
+run-php-github-xnv6s-fetch-repository-pod   0/1     Completed   0          70s
+```
+
+```
+[root@bastion ~]# oc logs -n test-build-github -l tekton.dev/pipelineTask=fetch-repository -c step-clone -f
+=== Clonando https://github.com/oscarmash/testing.git rama main ===
+Cloning into '.'...
+=== Repositorio descargado en el Workspace ===
+total 16
+=== Clonando https://github.com/oscarmash/testing.git rama main ===
+Cloning into '.'...
+drwxr-xr-x    4 root     root          4096 Sep 12 11:05 .
+drwxrwxrwx    3 root     root            20 Sep 12 11:04 ..
+drwxr-xr-x    7 root     root          4096 Sep 12 11:05 .git
+-rw-r--r--    1 root     root            97 Sep 12 11:05 README.md
+drwxr-xr-x    3 root     root          4096 Sep 12 11:05 tekton
+=== Repositorio descargado en el Workspace ===
+total 16
+drwxr-xr-x    4 root     root          4096 Sep 12 11:08 .
+drwxrwxrwx    3 root     root            20 Sep 12 11:08 ..
+drwxr-xr-x    7 root     root          4096 Sep 12 11:08 .git
+-rw-r--r--    1 root     root            97 Sep 12 11:08 README.md
+drwxr-xr-x    3 root     root          4096 Sep 12 11:08 tekton
+```
+
+```
+[root@bastion ~]# oc get is -n test-build-github
+```
+
+
+
+
+
+Por si hacemos pruebas, hacemos limpieza:
+
+```
+[root@bastion ~]# oc delete pods -n test-build-github --field-selector=status.phase=Failed
+[root@bastion ~]# oc delete pods -n test-build-github --field-selector=status.phase!=Running
+[root@bastion ~]# oc -n test-build-github get pods
+```
