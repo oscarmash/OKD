@@ -380,16 +380,28 @@ $ tree
 [root@bastion ~]# oc create sa pipeline -n test-build-github
 ```
 
+Permisos para que Buildah ejecute en modo privilegiado
+
 ```
 [root@bastion ~]# oc adm policy add-scc-to-user privileged -z pipeline -n test-build-github
-[root@bastion ~]# oc adm policy add-role-to-user edit -z pipeline -n test-build-github
+```
+
+Permisos para compilar y subir imágenes al registro interno en este namespace
+
+```
 [root@bastion ~]# oc adm policy add-role-to-user system:image-builder -z pipeline -n test-build-github
 [root@bastion ~]# oc adm policy add-role-to-user registry-editor -z pipeline -n test-build-github
-[root@bastion ~]# oc adm policy add-role-to-user system:image-builder -z pipeline -n test-build-github
-[root@bastion ~]# oc adm policy add-role-to-user registry-editor -z pipeline -n test-build-github
 [root@bastion ~]# oc adm policy add-role-to-user edit -z pipeline -n test-build-github
-[root@bastion ~]# oc adm policy add-role-to-user system:image-builder system:serviceaccount:test-build-github:pipeline -n test-build-github
-[root@bastion ~]# oc adm policy add-role-to-user registry-editor system:serviceaccount:test-build-github:pipeline -n test-build-github
+```
+
+Crearemos un token, para poder subir la imagen al registry:
+
+```
+TOKEN=$(oc create token pipeline --duration=8760h -n test-build-github)
+
+oc create secret generic pipeline-token-manual \
+  --from-literal=token="${TOKEN}" \
+  -n test-build-github
 ```
 
 ## Creamos la Task git-clone y la pipeline
@@ -420,14 +432,159 @@ Los tres archivos representan los tres niveles de abstracción de Tekton:
 
 ```
 [root@bastion ~]# vim manifest/tekton-github-task.yaml
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: test-build-github
+spec:
+  workspaces:
+    - name: output
+      description: "Directorio donde se descargará el repositorio"
+  params:
+    - name: url
+      type: string
+      description: "URL del repositorio GitHub"
+    - name: revision
+      type: string
+      default: "main"
+      description: "Rama a clonar"
+  steps:
+    - name: clone
+      image: alpine/git:latest
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/usr/bin/env sh
+        set -e
+        echo "=== Clonando $(params.url) rama $(params.revision) ==="
+        rm -rf ./* ./.[!.]*
+        git clone --depth 1 -b $(params.revision) $(params.url) .
+        echo "=== Repositorio descargado en el Workspace ==="
+        ls -la
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: buildah-from-git
+  namespace: test-build-github
+spec:
+  params:
+    - name: IMAGE_NAME
+      type: string
+      default: "app-php"
+    - name: IMAGE_TAG
+      type: string
+      default: "v1.0.0"
+  workspaces:
+    - name: source
+      description: "Workspace compartido donde reside el repositorio"
+  volumes:
+    - name: pipeline-token-vol
+      secret:
+        secretName: pipeline-token-manual
+  steps:
+    - name: build-and-push
+      image: quay.io/buildah/stable:latest
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: pipeline-token-vol
+          mountPath: /var/run/custom-token
+          readOnly: true
+      workingDir: $(workspaces.source.path)/tekton/codigo
+      script: |
+        #!/usr/bin/env bash
+        set -e
+
+        DEST="image-registry.openshift-image-registry.svc:5000/test-build-github/$(params.IMAGE_NAME):$(params.IMAGE_TAG)"
+
+        echo "=== Directorio de compilación: $(pwd) ==="
+        ls -la
+
+        echo "=== Compilando imagen con Buildah ==="
+        buildah bud --tls-verify=false -t "${DEST}" .
+
+        echo "=== Obteniendo token estático de 365 días ==="
+        TOKEN=$(cat /var/run/custom-token/token)
+
+        echo "=== Subiendo imagen al Registry interno en test-build-github ==="
+        buildah push --tls-verify=false --creds="pipeline:${TOKEN}" "${DEST}"
 ```
 
 ```
 [root@bastion ~]# vim manifest/tekton-github-pipeline.yaml
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: php-github-pipeline
+  namespace: test-build-github
+spec:
+  params:
+    - name: git-url
+      type: string
+      default: "https://github.com/oscarmash/testing.git"
+    - name: git-revision
+      type: string
+      default: "main"
+    - name: image-tag
+      type: string
+      default: "v1.0.0"
+  workspaces:
+    - name: shared-workspace
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+
+    - name: build-image
+      taskRef:
+        name: buildah-from-git
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE_TAG
+          value: $(params.image-tag)
 ```
 
 ```
 [root@bastion ~]# vim manifest/tekton-github-pipeline-run.yaml
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: run-php-github-
+  namespace: test-build-github
+spec:
+  serviceAccountName: pipeline
+  pipelineRef:
+    name: php-github-pipeline
+  params:
+    - name: git-url
+      value: "https://github.com/oscarmash/testing.git"
+    - name: git-revision
+      value: "main"
+    - name: image-tag
+      value: "v1.0.0"
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          storageClassName: thin-csi
+          resources:
+            requests:
+              storage: 5Gi
 ```
 
 ```
@@ -450,34 +607,30 @@ run-php-github-xnv6s-fetch-repository-pod   0/1     Completed   0          70s
 Cloning into '.'...
 === Repositorio descargado en el Workspace ===
 total 16
-=== Clonando https://github.com/oscarmash/testing.git rama main ===
-Cloning into '.'...
-drwxr-xr-x    4 root     root          4096 Sep 12 11:05 .
-drwxrwxrwx    3 root     root            20 Sep 12 11:04 ..
-drwxr-xr-x    7 root     root          4096 Sep 12 11:05 .git
--rw-r--r--    1 root     root            97 Sep 12 11:05 README.md
-drwxr-xr-x    3 root     root          4096 Sep 12 11:05 tekton
-=== Repositorio descargado en el Workspace ===
-total 16
-drwxr-xr-x    4 root     root          4096 Sep 12 11:08 .
-drwxrwxrwx    3 root     root            20 Sep 12 11:08 ..
-drwxr-xr-x    7 root     root          4096 Sep 12 11:08 .git
--rw-r--r--    1 root     root            97 Sep 12 11:08 README.md
-drwxr-xr-x    3 root     root          4096 Sep 12 11:08 tekton
+drwxr-xr-x    4 root     root          4096 Sep 13 07:25 .
+drwxrwxrwx    3 root     root            20 Sep 13 07:25 ..
+drwxr-xr-x    7 root     root          4096 Sep 13 07:25 .git
+-rw-r--r--    1 root     root            97 Sep 13 07:25 README.md
+drwxr-xr-x    3 root     root          4096 Sep 13 07:25 tekton
+```
+
+```
+[root@bastion ~]# oc logs -n test-build-github -l tekton.dev/pipelineTask=fetch-repository -c step-clone -f
+[root@bastion ~]# oc logs -n test-build-github -l tekton.dev/pipelineTask=build-image -c step-build-and-push
+=== Obteniendo token estático de 365 días ===
+=== Subiendo imagen al Registry interno en test-build-github ===
+Getting image source signatures
+Copying blob sha256:170a67f16e84eec3036da2cec643eb61cc0b88f08f08b3266b435513c6238c9d
+Copying blob sha256:bf64d54cdcb523e6527cea4518b667cdd0fd7176cefc22d170f55e2869a13a0b
+Copying blob sha256:3b16343e4311ac8773c3828aa677934579618ae40b55a4e2bb2e956c6908e68e
+Copying blob sha256:7c1031e4480b2b0d1f7b753087e3807af003befeabc5735d2ae56c508a30076c
+Copying blob sha256:26ba1ef4a16de0881d328e5348b57546de9537aa885418dd81fdf2a6b0bbed0a
+Copying config sha256:bd889432b9562a7e203652d28d9db4436b16a36b442d3cfbcf28b7ccbdd07008
+Writing manifest to image destination
 ```
 
 ```
 [root@bastion ~]# oc get is -n test-build-github
-```
-
-
-
-
-
-Por si hacemos pruebas, hacemos limpieza:
-
-```
-[root@bastion ~]# oc delete pods -n test-build-github --field-selector=status.phase=Failed
-[root@bastion ~]# oc delete pods -n test-build-github --field-selector=status.phase!=Running
-[root@bastion ~]# oc -n test-build-github get pods
+NAME      IMAGE REPOSITORY                                        TAGS     UPDATED
+app-php   registry.172.26.0.12.nip.io/test-build-github/app-php   v1.0.0   59 seconds ago
 ```
