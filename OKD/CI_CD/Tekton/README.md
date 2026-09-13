@@ -38,6 +38,14 @@ tekton-operator-5889466b74-m4dwt           2/2     Running   0          17s
 tekton-operator-webhook-5f68fd688b-j7zg5   1/1     Running   0          17s
 ```
 
+Realizamos la configuración blobal de Tekton:
+* *result.disabled.true* Desactiva el componente opcional Tekton Results, el cual se utiliza para almacenar registros y resultados históricos en una base de datos externa.
+* *pruner* Evita que la base de datos de Kubernetes (etcd) se sature con miles de pods y objetos históricos acumulados tras cada compilación.
+  * *resources: [pipelinerun, taskrun]* Especifica qué objetos de Tekton debe limpiar automáticamente.
+  * *keep: 3* Mantiene únicamente las últimas 3 ejecuciones por Pipeline/Task en cada namespace, borrando automáticamente todas las anteriores.
+  * *schedule: "0 8 * * *"* Programa un cronjob interno que ejecuta esta tarea de purga todos los días a las 08:00 AM UTC.
+
+
 ```
 [root@bastion ~]# vim manifest/tekton_config.yaml
 apiVersion: operator.tekton.dev/v1alpha1
@@ -378,6 +386,10 @@ $ tree
         ├── Containerfile
         └── index.php
 ```
+
+Ficheros:
+* [Containerfile](files/Containerfile)
+* [index.php](files/index.php)
 
 ## Creamos el proyecto y configurar permisos
 

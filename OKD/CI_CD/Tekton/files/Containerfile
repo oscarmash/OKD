@@ -1,0 +1,8 @@
+FROM registry.access.redhat.com/ubi9/php-81:latest
+
+COPY index.php /opt/app-root/src/index.php
+COPY index.php /var/www/html/index.php
+
+EXPOSE 8080
+
+CMD ["container-entrypoint", "/usr/libexec/s2i/run"]
