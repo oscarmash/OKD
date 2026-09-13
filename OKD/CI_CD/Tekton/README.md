@@ -8,6 +8,11 @@
   * [Desplegar la aplicación](#desplegar-la-aplicación)
   * [Cambio de versión de la APP](#cambio-de-versión-de-la-app)
 * [Pipeline CI completo con GitHub y PVC Workspace](#pipeline-ci-completo-con-github-y-pvc-workspace)
+  * [Repositorio GitHub](#repositorio-github)
+  * [Creamos el proyecto y configurar permisos](#creamos-el-proyecto-y-configurar-permisos)
+  * [Creamos la Task git-clone y la pipeline](#creamos-la-task-git-clone-y-la-pipeline)
+  * [Verificación del despliegue](#verificación-del-despliegue)
+* [Quién manda sobre quién (Pipeline vs PipelineRun)](#quién-manda-sobre-quién-pipeline-vs-pipelinerun)
 
 El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
 
@@ -511,6 +516,8 @@ spec:
         buildah push --tls-verify=false --creds="pipeline:${TOKEN}" "${DEST}"
 ```
 
+Revisar: [Quién manda sobre quién (Pipeline vs PipelineRun)](#quién-manda-sobre-quién-pipeline-vs-pipelinerun)
+
 ```
 [root@bastion ~]# vim manifest/tekton-github-pipeline.yaml
 apiVersion: tekton.dev/v1
@@ -593,6 +600,8 @@ spec:
 [root@bastion ~]# oc create -f manifest/tekton-github-pipeline-run.yaml
 ```
 
+## Verificación del despliegue
+
 ```
 [root@bastion ~]# oc -n test-build-github get pods
 NAME                                        READY   STATUS      RESTARTS   AGE
@@ -634,3 +643,20 @@ Writing manifest to image destination
 NAME      IMAGE REPOSITORY                                        TAGS     UPDATED
 app-php   registry.172.26.0.12.nip.io/test-build-github/app-php   v1.0.0   59 seconds ago
 ```
+
+# Quién manda sobre quién (Pipeline vs PipelineRun)
+
+Los valores definidos en el Pipeline (en su campo default) son los que se usarán por defecto si el PipelineRun no define nada:
+
+```
+[ Pipeline (Plantilla) ]         ──► Define variables y valores DEFAULT (Respaldo)
+         ▲
+         │ (Si no envías nada, se usan los DEFAULT)
+         │ (Si envías valores, estos MANDAN y SOBRESCRIBEN)
+         │
+[ PipelineRun (Ejecución) ]     ──► Pasa los valores REALES para esa compilación
+```
+Explicación:
+
+* El Pipeline tiene los valores por defecto: Define qué variables existen y qué valor tomarán si nadie les pasa nada.
+* El PipelineRun define los valores prioritarios: Si incluyes params en el PipelineRun, esos valores tienen prioridad absoluta y sobrescriben los default del Pipeline
