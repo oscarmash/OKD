@@ -13,6 +13,7 @@
   * [Creamos la Task git-clone y la pipeline](#creamos-la-task-git-clone-y-la-pipeline)
   * [Verificación del despliegue](#verificación-del-despliegue)
 * [Quién manda sobre quién (Pipeline vs PipelineRun)](#quién-manda-sobre-quién-pipeline-vs-pipelinerun)
+* [Imagen de Buildah](#imagen-de-buildah)
 
 El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
 
@@ -660,3 +661,13 @@ Explicación:
 
 * El Pipeline tiene los valores por defecto: Define qué variables existen y qué valor tomarán si nadie les pasa nada.
 * El PipelineRun define los valores prioritarios: Si incluyes params en el PipelineRun, esos valores tienen prioridad absoluta y sobrescriben los default del Pipeline
+
+# Imagen de Buildah
+
+En entornos modernos como OKD 4.18 (donde el motor de ejecución es CRI-O en lugar de Docker), no existe el clásico servicio dockerd ni el socket /var/run/docker.sock.
+
+La imagen de Buildah proporcionar el motor necesario para compilar, empaquetar y publicar imágenes de contenedor dentro de un pod de Kubernetes sin requerir un demonio Docker activo.
+
+Buildah no necesita un demonio: Es una herramienta diseñada por Red Hat orientada a entornos OCI (Open Container Initiative)
+
+La imagen de Buildah contiene todos los binarios necesarios (buildah bud, buildah push, buildah login) para compilar directamente desde un Containerfile o Dockerfile dentro del espacio de usuario del propio pod.
