@@ -14,6 +14,7 @@
   * [Verificación del despliegue](#verificación-del-despliegue)
 * [Quién manda sobre quién (Pipeline vs PipelineRun)](#quién-manda-sobre-quién-pipeline-vs-pipelinerun)
 * [Imagen de Buildah](#imagen-de-buildah)
+* [Tekton Dashboard](#tekton-dashboard)
 
 El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
 
@@ -683,3 +684,37 @@ La imagen de Buildah proporcionar el motor necesario para compilar, empaquetar y
 Buildah no necesita un demonio: Es una herramienta diseñada por Red Hat orientada a entornos OCI (Open Container Initiative)
 
 La imagen de Buildah contiene todos los binarios necesarios (buildah bud, buildah push, buildah login) para compilar directamente desde un Containerfile o Dockerfile dentro del espacio de usuario del propio pod.
+
+# Tekton Dashboard
+
+Instalamos la última versión de Tekton Dashboard.
+Como el manifiesto oficial de Tekton Dashboard presupone que el namespace tekton-pipelines ya existe en el clúster, lo crearemos.
+
+```
+oc create namespace tekton-pipelines
+oc apply --filename https://storage.googleapis.com/tekton-releases/dashboard/latest/release.yaml
+```
+
+Exponemos el servicio mediante una Route de OKD, para poder acceder por navegador
+
+```
+oc create route edge tekton-dashboard \
+  --service=tekton-dashboard \
+  --port=http \
+  --hostname=tekton.172.26.0.12.nip.io \
+  -n tekton-pipelines
+```
+
+Comprobamos que el pod esté en ejecución
+
+```
+[root@bastion ~]# oc get pods -n tekton-pipelines -l app.kubernetes.io/name=dashboard
+NAME                               READY   STATUS    RESTARTS   AGE
+tekton-dashboard-699dcfc5b-qnng4   1/1     Running   0          46s
+```
+
+Verificamos el acceso
+
+![tekton-gui-01.png](images/tekton-gui-01.png)
+
+![tekton-gui-02.png](images/tekton-gui-02.png)
