@@ -25,6 +25,7 @@
 * [Personalización de errores del Ingress](./OKD/Custom_Ingress/README.md)
 * [Registry](./OKD/registry/README.md)
 * [Insights](./OKD/insights/README.md)
+* [SCC (Security Context Constraints)](./OKD/SCC/README.md)
 * [Thanos](./OKD/Thanos/README.md)
 * Alertmanager
   * [AlertmanagerReceiversNotConfigured](./OKD/Alertmanager/AlertmanagerReceiversNotConfigured/README.md)
