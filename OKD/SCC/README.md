@@ -14,7 +14,7 @@ La analogía fácil:
 * La ServiceAccount (cuenta de servicio) es su tarjeta de identificación.
 * El SCC es el nivel de autorización grabado en la tarjeta.
 
-OKD viene con varios SCC predefinidos
+OKD viene con varios SCC predefinidos:
 
 | SCC | ¿Qué permite? | Caso típico |
 | :--- | :--- | :--- |
@@ -23,6 +23,8 @@ OKD viene con varios SCC predefinidos
 | **`privileged`** | Permiso total. Quita todas las restricciones de seguridad. Permite ser root, manipular el kernel, usar sockets crudos y saltarse validaciones. | Operadores del sistema, utilidades de red profunda (hacer ping), agentes de monitorización o almacenamiento. |
 
 A los contenedores no se les asigna el SCC a mano; el SCC se asigna a la ServiceAccount (cuenta de servicio) que ejecuta esos contenedores.
+
+Todos los NS vienen con el ServiceAccount default (junto con otras como builder y deployer). Si en el manifest no incluyes el ServiceAccountName, el le asigna automáticamente la cuenta default, con la directiva de seguridad estándar de OKD: restricted-v2.
 
 # Ejemplos
 
