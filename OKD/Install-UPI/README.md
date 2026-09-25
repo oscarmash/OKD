@@ -1,25 +1,29 @@
 ## Índice
 
-* [Guía de Instalación OKD Bare-metal / UPI](#guía-de-instalación-okd-bare-metal--upi)
-  * [Concepto UPI](#concepto-upi)
-  * [Arquitectura del Clúster](#arquitectura-del-Clúster)
-  * [Especificaciones de Nodos OKD / OpenShift](#especificaciones-de-nodos-okd--openshift)
-  * [Estimación de Tráfico de Red (Instalación Bare-metal / UPI)](#estimación-de-tráfico-de-red-instalación-bare-metal--upi)
-  * [Habilitar disk.EnableUUID](#habilitar-diskenableuuid)
-* [Preparación del Servidor Bastión](#preparación-del-servidor-bastión)
-  * [Instalación de Servicios Base](#instalación-de-servicios-base)
-* [Despliegue de OKD](#despliegue-de-okd)
-  * [Instalación del Nodo Bootstrap](#instalación-del-nodo-bootstrap)
-      * [Obtención de la ISO de SCOS / CoreOS](#obtención-de-la-iso-de-scos--coreos)
-    * [Instalación en el Nodo Bootstrap](#instalación-en-el-nodo-bootstrap)
-    * [Monitorización del Nodo Bootstrap](#monitorización-del-nodo-bootstrap)
-  * [Instalación de Nodos Masters (Control Plane)](#instalación-de-nodos-masters-control-plane)
-    * [Aprobación de Certificados y Taints Iniciales](#aprobación-de-certificados-y-taints-iniciales)
-  * [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
-    * [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
-    * [Aislamiento del Control Plane](#desactivación-del-schedulable-en-nodos-master-aislamiento-del-control-plane)
-  * [Validación de la instalación](#validación-de-la-instalación)
-
+- [Guía de Instalación OKD Bare-metal / UPI](#guía-de-instalación-okd-bare-metal--upi)
+  - [Concepto UPI](#concepto-upi)
+  - [Arquitectura del Clúster](#arquitectura-del-clúster)
+  - [Especificaciones de Nodos OKD / OpenShift](#especificaciones-de-nodos-okd--openshift)
+  - [Estimación de Tráfico de Red (Instalación Bare-metal / UPI)](#estimación-de-tráfico-de-red-instalación-bare-metal--upi)
+  - [VMWare Custom](#vmware-custom)
+    - [Habilitar disk.EnableUUID](#habilitar-diskenableuuid)
+    - [DesHabilitar SecureBoot](#deshabilitar-secureboot)
+- [Preparación del Servidor Bastión](#preparación-del-servidor-bastión)
+  - [Instalación de Servicios Base](#instalación-de-servicios-base)
+- [Despliegue de OKD](#despliegue-de-okd)
+  - [Instalación del Nodo Bootstrap](#instalación-del-nodo-bootstrap)
+    - [Obtención de la ISO de SCOS / CoreOS](#obtención-de-la-iso-de-scos--coreos)
+    - [Instalación en el Nodo Bootstrap](#instalación-en-el-nodo-bootstrap)
+    - [Monitorización del Nodo Bootstrap](#monitorización-del-nodo-bootstrap)
+  - [Instalación de Nodos Masters (Control Plane)](#instalación-de-nodos-masters-control-plane)
+    - [Aprobación de Certificados y Taints Iniciales](#aprobación-de-certificados-y-taints-iniciales)
+  - [Instalación de Nodos Workers (Compute)](#instalación-de-nodos-workers-compute)
+    - [Monitorización y aprobación de CSRs](#monitorización-y-aprobación-de-csrs)
+    - [Desactivación del Schedulable en Nodos Master (Aislamiento del Control Plane)](#desactivación-del-schedulable-en-nodos-master-aislamiento-del-control-plane)
+  - [Validación de la instalación](#validación-de-la-instalación)
+    - [Nodes](#nodes)
+    - [Operators](#operators)
+    - [GUI](#gui)
 
 ## Guía de Instalación OKD Bare-metal / UPI
 
@@ -50,9 +54,15 @@ UPI (User-Provisioned Infrastructure) -> El administrador crea y gestiona manual
 | **Compute** *(Worker)* | 2 | 4.5 GB - 5.5 GB | 9.0 GB - 11.0 GB |
 | **TOTAL ESTIMADO** | **5** | — | **~25 GB - 30 GB** |
 
-### Habilitar disk.EnableUUID
+### VMWare Custom
+
+#### Habilitar disk.EnableUUID
 
 Antes de desplegar los equipos si vamos a usar el storage de VMWare, habilitar en los equipos el flag: "Habilitar disk.EnableUUID"
+
+#### DesHabilitar SecureBoot
+
+Antes de desplegar los equipos si vamos a usar Cluster Version Operator (CVO), hemos de deshabilitar el "Secure Boot"
 
 ## Preparación del Servidor Bastión
 

@@ -1,17 +1,29 @@
+
+
 # Cluster Version Operator (CVO)
 
-# Índice
-
-- [Cluster Version Operator (CVO)](#cluster-version-operator-cvo)
 - [Validaciones previas](#validaciones-previas)
 - [Actualización](#actualización)
   - [Update minor version (4.21.0-okd-scos.9 to 4.21.0-okd-scos.11)](#update-minor-version-4210-okd-scos9-to-4210-okd-scos11)
-- [troubleshooting](#troubleshooting)
+  - [Update major version (4.21.0-okd-scos.11 to 4.22.0-okd-scos.10)](#update-major-version-4210-okd-scos11-to-4220-okd-scos10)
+- [Troubleshooting](#troubleshooting)
 
 # Validaciones previas
 
-Es indispensable para evitar que la actualización se quede atascada a mitad del proceso.
+Es indispensable deshabilitar el "Secure Boot":
 
+* Accede a la interfaz web de vCenter o ESXi.
+* Apaga la VM.
+* Haz clic derecho sobre la VM $\rightarrow$ Edit Settings (Editar configuración).
+* En la pestaña VM Options (Opciones de máquina virtual).Despliega la sección Boot Options (Opciones de arranque).
+* En el apartado Firmware, asegúrate de que el firmware sea EFI y *desmarca* la casilla Secure Boot (Arranque seguro)
+* Guarda los cambios y enciende la VM
+
+![Secure Boot](images/Secure_Boot.png)
+
+Si deshabilitas el "Secure Boot" y reiniciamos, nos encontraremos este error al actualizar:
+
+![Error Update](images/Error_boot.png)
 
 Estado general de los operadores del clúster (ClusterOperators)
 
@@ -170,6 +182,10 @@ worker3.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.23   
 worker4.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.24    10.26.0.24    CentOS Stream CoreOS 10.0.20260414-0 (Coughlan)   6.12.0-219.el10.x86_64   cri-o://1.34.4
 ```
 
+## Update major version (4.21.0-okd-scos.11 to 4.22.0-okd-scos.10)
+
+![Update Release](images/Update.png)
+
 # troubleshooting
 
 ```
@@ -178,3 +194,4 @@ worker4.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.24   
 [root@bastion ~]# oc describe clusterversion version
 [root@bastion ~]# oc adm upgrade
 ```
+

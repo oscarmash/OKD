@@ -18,6 +18,7 @@
 * [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md) :one:
 * [Añadir nodo al clúster de OKD](./OKD/add_worker/README.md)
 * [Configuración de nodos mediante MachineConfig (MCO)](./OKD/MachineConfig/README.md)
+* [Cluster Version Operator (CVO)](./OKD/CVO/README.md)
 
 #### Interfaz y Operaciones
 * [Creación de usuarios](./OKD/users/README.md)
