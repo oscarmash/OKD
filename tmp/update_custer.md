@@ -1,3 +1,13 @@
+# Cluster Version Operator (CVO)
+
+# Índice
+
+- [Cluster Version Operator (CVO)](#cluster-version-operator-cvo)
+- [Validaciones previas](#validaciones-previas)
+- [Actualización](#actualización)
+  - [Update minor version (4.21.0-okd-scos.9 to 4.21.0-okd-scos.11)](#update-minor-version-4210-okd-scos9-to-4210-okd-scos11)
+- [troubleshooting](#troubleshooting)
+
 # Validaciones previas
 
 Es indispensable para evitar que la actualización se quede atascada a mitad del proceso.
@@ -158,4 +168,13 @@ worker1.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.21   
 worker2.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.22    10.26.0.22    CentOS Stream CoreOS 10.0.20260414-0 (Coughlan)   6.12.0-219.el10.x86_64   cri-o://1.34.4
 worker3.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.23    10.26.0.23    CentOS Stream CoreOS 10.0.20260414-0 (Coughlan)   6.12.0-219.el10.x86_64   cri-o://1.34.4
 worker4.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.24    10.26.0.24    CentOS Stream CoreOS 10.0.20260414-0 (Coughlan)   6.12.0-219.el10.x86_64   cri-o://1.34.4
+```
+
+# troubleshooting
+
+```
+[root@bastion ~]# oc logs -n openshift-cluster-version deployment/cluster-version-operator --tail=80 | grep -E 'error|MultipleErrors|failed'
+[root@bastion ~]# oc get events -n openshift-cluster-version --sort-by='.lastTimestamp' | tail -n 20
+[root@bastion ~]# oc describe clusterversion version
+[root@bastion ~]# oc adm upgrade
 ```
