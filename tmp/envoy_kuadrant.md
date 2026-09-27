@@ -138,6 +138,45 @@ httproutefilters.gateway.envoyproxy.io                                     2026-
 securitypolicies.gateway.envoyproxy.io                                     2026-09-27T09:24:55Z
 ```
 
+## Envoy NodePort (30080)
+
+```
+[root@bastion ~]# vim manifest/00-envoy_EnvoyProxy.yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: eg-proxy-config
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 2
+      envoyService:
+        type: NodePort
+        externalTrafficPolicy: Cluster
+        ports:
+          - name: http
+            port: 8080
+            targetPort: 8080
+            nodePort: 30080
+```
+
+```
+[root@bastion ~]# oc apply -f manifest/00-envoy_EnvoyProxy.yaml
+
+[root@bastion ~]# oc -n envoy-gateway-system get pods
+NAME                                                             READY   STATUS    RESTARTS   AGE
+envoy-envoy-gateway-system-eg-gateway-b87277ac-b8758bf4d-7ghjk   2/2     Running   0          12s
+envoy-envoy-gateway-system-eg-gateway-b87277ac-b8758bf4d-grlx7   2/2     Running   0          20m
+envoy-gateway-54b57d4f5-k5kw5                                    1/1     Running   2          11h
+
+[root@bastion ~]# oc get svc -A | grep -i envoy-gateway-system | grep NodePort | awk '{print $6}'
+8080:30080/TCP
+```
+
+
 ## Ejemplo de funcionamiento
 
 ```
@@ -220,12 +259,17 @@ metadata:
   name: eg
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: eg-proxy-config
+    namespace: envoy-gateway-system
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: eg-gateway
-  namespace: test-envoy
+  namespace: envoy-gateway-system
 spec:
   gatewayClassName: eg
   listeners:
@@ -234,7 +278,7 @@ spec:
       port: 8080
       allowedRoutes:
         namespaces:
-          from: Same
+          from: All
 ```
 
 ```
@@ -253,6 +297,7 @@ metadata:
 spec:
   parentRefs:
   - name: eg-gateway
+    namespace: envoy-gateway-system
   hostnames:
   - "echo.172.26.0.12.nip.io"
   rules:
@@ -269,4 +314,22 @@ spec:
 [root@bastion ~]# oc apply -f manifest/01-test-envoy_HTTPRoute.yaml
 ```
 
+```
+[root@bastion ~]# oc get HTTPRoute -A
+NAMESPACE    NAME         HOSTNAMES                     AGE
+test-envoy   echo-route   ["echo.172.26.0.12.nip.io"]   28s
+```
 
+### Test
+
+```
+[root@bastion ~]# curl -i -H "Host: echo.172.26.0.12.nip.io" http://10.26.0.24:30080/
+HTTP/1.1 200 OK
+x-app-name: http-echo
+x-app-version: 0.2.3
+date: Sun, 27 Sep 2026 19:50:27 GMT
+content-length: 46
+content-type: text/plain; charset=utf-8
+
+Hola desde el pod: echo-app-65bc5cd765-z6gmp
+```
