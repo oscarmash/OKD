@@ -140,3 +140,133 @@ securitypolicies.gateway.envoyproxy.io                                     2026-
 
 ## Ejemplo de funcionamiento
 
+```
+[root@bastion ~]# oc new-project test-envoy
+[root@bastion ~]# oc adm policy add-scc-to-group privileged system:serviceaccounts:test-envoy
+```
+
+### Deployment + Service
+
+```
+[root@bastion ~]# vim manifest/01-test-envoy_deploy-svc.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-app
+  namespace: test-envoy
+  labels:
+    app: echo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: echo-app
+  template:
+    metadata:
+      labels:
+        app: echo-app
+    spec:
+      containers:
+      - name: echo
+        image: hashicorp/http-echo:0.2.3
+        args:
+        - "-text=Hola desde el pod: $(HOSTNAME)\n"
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-svc
+  namespace: test-envoy
+  labels:
+    app: echo-app
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 5678
+  selector:
+    app: echo-app
+```
+
+```
+[root@bastion ~]# oc apply -f manifest/01-test-envoy_deploy-svc.yaml
+```
+
+```
+[root@bastion ~]# oc -n test-envoy get svc
+NAME       TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+echo-svc   ClusterIP   172.30.219.154   <none>        80/TCP    24s
+
+[root@bastion ~]# ssh core@master1.ilba.cat
+
+[core@master1 ~]$ curl 172.30.219.154
+Hola desde el pod: echo-app-65bc5cd765-2dtts
+```
+
+### GatewayClass + Gateway
+
+```
+[root@bastion ~]# vim manifest/01-test-envoy_GatewayClass_Gateway.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: eg-gateway
+  namespace: test-envoy
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 8080
+      allowedRoutes:
+        namespaces:
+          from: Same
+```
+
+```
+[root@bastion ~]# oc apply -f manifest/01-test-envoy_GatewayClass_Gateway.yaml
+```
+
+### HTTPRoute
+
+```
+[root@bastion ~]# vim manifest/01-test-envoy_HTTPRoute.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo-route
+  namespace: test-envoy
+spec:
+  parentRefs:
+  - name: eg-gateway
+  hostnames:
+  - "echo.172.26.0.12.nip.io"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: echo-svc
+      port: 80
+```
+
+```
+[root@bastion ~]# oc apply -f manifest/01-test-envoy_HTTPRoute.yaml
+```
+
+
