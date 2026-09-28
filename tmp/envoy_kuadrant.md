@@ -1,3 +1,22 @@
+## Índice
+
+- [Envoy (Proxy Inverso)](#envoy-proxy-inverso)
+  - [Prerequisitos](#prerequisitos)
+  - [Esquema](#esquema)
+  - [Instalación](#instalación)
+    - [Instalación via Helm de Envoy](#instalación-via-helm-de-envoy)
+    - [Instalación de CRD's de Envoy](#instalación-de-crds-de-envoy)
+      - [Via Helm (FAILED)](#via-helm-failed)
+      - [Via Helm Pull (OK)](#via-helm-pull-ok)
+  - [Envoy NodePort (30080)](#envoy-nodeport-30080)
+  - [Modificación HAProxy (bastion)](#modificación-haproxy-bastion)
+  - [NAT pfSense](#nat-pfsense)
+  - [Ejemplo de funcionamiento](#ejemplo-de-funcionamiento)
+    - [Deployment + Service](#deployment--service)
+    - [GatewayClass + Gateway](#gatewayclass--gateway)
+    - [HTTPRoute](#httproute)
+    - [Test](#test)
+
 # Envoy (Proxy Inverso)
 
 Envoy = rendimiento extremo + control quirúrgico
@@ -45,6 +64,10 @@ Saber la versión que tenemos instalada:
 [root@bastion ~]# oc get crd gateways.gateway.networking.k8s.io -o yaml | grep bundle-version
     gateway.networking.k8s.io/bundle-version: v1.4.1
 ```
+
+## Esquema
+
+![Esquema HAProxy Envoy](images/Esquema-HAProxy-Envoy.png)
 
 ## Instalación
 
@@ -176,6 +199,38 @@ envoy-gateway-54b57d4f5-k5kw5                                    1/1     Running
 8080:30080/TCP
 ```
 
+## Modificación HAProxy (bastion)
+
+```
+[root@bastion ~]# vim /etc/haproxy/haproxy.cfg
+# ---------------------------------------------------------------------
+# ENVOY GATEWAY (Puerto 30080)
+# ---------------------------------------------------------------------
+frontend envoy_frontend
+    bind 10.26.0.5:30080
+    mode tcp
+    option tcplog
+    default_backend envoy_backend
+
+backend envoy_backend
+    mode tcp
+    balance roundrobin
+    server worker1 10.26.0.21:30080 check
+    server worker2 10.26.0.22:30080 check
+    server worker3 10.26.0.23:30080 check
+    server worker4 10.26.0.24:30080 check
+```
+
+```
+[root@bastion ~]# systemctl restart haproxy
+[root@bastion ~]# systemctl status haproxy
+```
+
+## NAT pfSense
+
+![VirtualIP](images/pfsense-virtualIP.png)
+
+![NAT](images/pfsense-NAT.png)
 
 ## Ejemplo de funcionamiento
 
@@ -299,7 +354,7 @@ spec:
   - name: eg-gateway
     namespace: envoy-gateway-system
   hostnames:
-  - "echo.172.26.0.12.nip.io"
+  - "echo.172.26.0.13.nip.io"
   rules:
   - matches:
     - path:
@@ -317,19 +372,21 @@ spec:
 ```
 [root@bastion ~]# oc get HTTPRoute -A
 NAMESPACE    NAME         HOSTNAMES                     AGE
-test-envoy   echo-route   ["echo.172.26.0.12.nip.io"]   28s
+test-envoy   echo-route   ["echo.172.26.0.13.nip.io"]   28s
 ```
 
 ### Test
 
 ```
-[root@bastion ~]# curl -i -H "Host: echo.172.26.0.12.nip.io" http://10.26.0.24:30080/
+[root@bastion ~]# curl -i -H "Host: echo.172.26.0.13.nip.io" http://10.26.0.24:30080/
 HTTP/1.1 200 OK
 x-app-name: http-echo
 x-app-version: 0.2.3
-date: Sun, 27 Sep 2026 19:50:27 GMT
+date: Mon, 28 Sep 2026 14:47:58 GMT
 content-length: 46
 content-type: text/plain; charset=utf-8
 
-Hola desde el pod: echo-app-65bc5cd765-z6gmp
+Hola desde el pod: echo-app-65bc5cd765-2dtts
 ```
+
+![Test](images/TEST.png)
