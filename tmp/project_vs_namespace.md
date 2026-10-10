@@ -1,3 +1,30 @@
+* Concepto: Project vs Namespace (Wrapper, APIs y tabla comparativa).
+* Casos de uso: Cuándo usar cada uno (Operadores e Infraestructura vs Aplicaciones de Usuario).
+* Namespaces de Sistema y Reservados:
+ * Restricciones de nombres (openshift-*, kube-*).
+ * Fases de arranque: La etiqueta openshift.io/run-level.
+* RBAC y Autoservicio:
+ * Ventajas del rol local admin.
+ * Restricción opcional del rol self-provisioner.
+* Gobernanza con Plantillas (ProjectRequestTemplate):
+* Por qué usarla (ResourceQuota, LimitRange, NetworkPolicy).
+* Ejemplo YAML completo (sin duplicar kind: Namespace).
+* Activación global y pruebas de verificación.
+* Procedimiento de rollback / limpieza y recarga del API Server.
+
+Históricamente, el Namespace existió antes en el motor de Kubernetes, pero el concepto de Project nació porque el Namespace original era insuficiente para entornos empresariales
+
+dentro de cada proyecto automáticamente para que las aplicaciones funcionen sin configuración previa:
+* default: La identidad bajo la que corren los Pods por defecto (sometida a la SCC restricted-v2).
+* builder: Cuenta utilizada por los builds internos / S2I para compilar y empujar imágenes al registro local.
+* deployer: Cuenta histórica encargada de desplegar pods durante los rollouts de ReplicationControllers / DeploymentConfigs.
+
+[root@bastion ~]# oc get sa -n <tu-proyecto>
+NAME       SECRETS   AGE
+builder    2         10s
+default    2         10s
+deployer   2         10s
+
 # Project vs NS
 
 un Project es una capa de abstracción sobre un Namespace estándar de Kubernetes. Cada vez que se crea un Project, OpenShift crea y mapea por debajo un Namespace con el mismo nombre.
@@ -20,6 +47,10 @@ Los projects se pueden hacer de dos maneras:
 
 Projects starting with openshift- and kube- are default projects.
 OpenShift Container Platform does not allow you to create projects starting with openshift- or kube- using the oc new-project command. Cluster administrators can create these projects using the oc adm new-project command.
+
+## Selectores de Nodos por Proyecto
+
+Si un proyecto lleva la anotación openshift.io/node-selector: "node-role.kubernetes.io/infra=", todos los pods creados en ese proyecto se agendarán automáticamente solo en esos nodos sin necesidad de que el desarrollador configure nodeSelector a mano en sus despliegues.
 
 ## Creación de un proyecto
 
@@ -45,6 +76,14 @@ CAPTURA DE CREAR UN PROJECT DESDE LA GUI
 
 ```
 [root@bastion ~]# oc get rolebinding admin -n test-project-nuria -o yaml
+```
+
+## Desactivar el auto-aprovisionamiento (self-provisioner)
+
+En muchas empresas o entornos de producción se retira el rol self-provisioner del grupo system:authenticated:oauth:
+
+```
+oc adm policy remove-cluster-role-from-group self-provisioner system:authenticated:oauth
 ```
 
 ## Plantilla base
@@ -198,3 +237,15 @@ Hecemos limpieza
 [root@bastion ~]# oc patch project.config.openshift.io/cluster --type=merge -p '{"spec":{"projectRequestTemplate":null}}'
 [root@bastion ~]# oc rollout restart deployment/apiserver -n openshift-apiserver
 ```
+
+ al crear un project, se crea un registry privado en ese ns 
+
+Al crear un proyecto llamado por ejemplo mi-app, el clúster reserva automáticamente la ruta interna:
+
+image-registry.openshift-image-registry.svc:5000/mi-app/<nombre-imagen>:<tag>
+
+
+Ningún usuario ni pod de otro proyecto puede hacer push (subir) o pull (descargar) de esa ruta a menos que tú le des permisos explícitos
+
+
+ver GUI: Builds ->  ImageStreams
