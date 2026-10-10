@@ -1,3 +1,4 @@
+
 * Concepto: Project vs Namespace (Wrapper, APIs y tabla comparativa).
 * Casos de uso: Cuándo usar cada uno (Operadores e Infraestructura vs Aplicaciones de Usuario).
 * Namespaces de Sistema y Reservados:
