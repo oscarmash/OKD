@@ -14,6 +14,10 @@
 * :construction: [KubeSpray vs OKD](./OKD/KubeSpary-vs-OKD/README.md) *(En construcción)*
 * :construction: [Mantenimiento diario](./OKD/mantenimiento-diario/README.md) *(En construcción)*
 
+#### Documentación
+
+* [Project vs Namespace](./OKD/DOC/Project_vs_NS/README.md)
+
 #### Instalación y Gestión de Nodos
 * [Instalación: UPI (User-Provisioned Infrastructure)](./OKD/Install-UPI/README.md) :one:
 * [Añadir nodo al clúster de OKD](./OKD/add_worker/README.md)
