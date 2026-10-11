@@ -249,7 +249,9 @@ Si estuvieramos en un Laboratorio, es importante hacer limpieza:
 
 # Registry privado en cada proyecto
 
-Al dar de alta un proyecto (por ejemplo, mi-app), se crea un *Registry* interno para ese Namespace:
+Al dar de alta un proyecto (por ejemplo, test-build-github), se crea un *Registry* interno para ese Namespace.
+
+Por defecto, el acceso está completamente restringido: ningún usuario ni pod de otro namespace puede hacer push (subir) ni pull (descargar). La seguridad se gestiona directamente con los roles de Kubernetes/OpenShift vinculados al proyecto. Si otro proyecto necesita descargar imágenes de este repositorio, se le debe conceder permisos explícitos al rol de su ServiceAccount.
 
 ```
 [root@bastion ~]# oc get is -n test-build-github
@@ -259,4 +261,3 @@ app-php   registry.172.26.0.12.nip.io/test-build-github/app-php   v1.0.0   4 wee
 
 ![ImageStreamsy](images/ImageStreams.png)
 
-Por defecto, el acceso está completamente restringido: ningún usuario ni pod de otro namespace puede hacer push (subir) ni pull (descargar). La seguridad se gestiona directamente con los roles de Kubernetes/OpenShift vinculados al proyecto. Si otro proyecto necesita descargar imágenes de este repositorio, se le debe conceder permisos explícitos al rol de su ServiceAccount.
