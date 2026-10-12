@@ -200,3 +200,12 @@ Login Succeeded!
 NAME    IMAGE REPOSITORY                                       TAGS     UPDATED
 nginx   registry.172.26.0.12.nip.io/test-project-nuria/nginx   latest   30 seconds ago
 ```
+
+## Ver usuarios existentes en el cluster
+
+```
+[root@bastion ~]# oc get users
+NAME          UID                                    FULL NAME   IDENTITIES
+nuria.ilari   8ca3a2c0-9407-42c9-8c58-4fc874da4c81               htpasswd_provider:nuria.ilari
+oscar.mas     b721381f-154e-4657-8aa6-15a2cb40cfb6               htpasswd_provider:oscar.mas
+```
