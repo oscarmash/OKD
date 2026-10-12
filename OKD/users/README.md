@@ -3,6 +3,13 @@
 - [Crear un usuario administrador](#crear-un-usuario-administrador)
 - [Crear un usuario](#crear-un-usuario)
 - [Volver al contexto de admin](#volver-al-contexto-de-admin)
+- [Comandos utiles para usuarios](#comandos-utiles-para-usuarios)
+  - [Ver proyectos](#ver-proyectos)
+  - [Cambiar de proyecto](#cambiar-de-proyecto)
+  - [Login de usuario](#login-de-usuario)
+  - [Registry](#registry)
+  - [Ver usuarios existentes en el cluster](#ver-usuarios-existentes-en-el-cluster)
+
 # Crear un usuario administrador
 
 Crear un usuario administrador como el *kubeadmin*
