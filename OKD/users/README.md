@@ -136,3 +136,67 @@ CURRENT   NAME                                                CLUSTER           
 [root@bastion ~]# oc whoami
 system:admin
 ```
+
+# Comandos utiles para usuarios
+
+## Ver proyectos
+
+```
+[root@bastion ~]# oc get projects
+NAME                 DISPLAY NAME      STATUS
+kubevirt-os-images                     Active
+test-limit-user      Test Limit User   Active
+test-project-nuria   Test Nuria        Active
+```
+
+## Cambiar de proyecto:
+
+```
+[root@bastion ~]# oc project test-project-nuria
+Now using project "test-project-nuria" on server "https://api.okd.ilba.cat:6443".
+```
+
+## Login de usuario
+
+```
+[root@bastion ~]# oc login https://api.okd.ilba.cat:6443 -u nuria.ilari -p Password123 --insecure-skip-tls-verify=true
+WARNING: Using insecure TLS client config. Setting this option is not supported!
+
+Login successful.
+
+You have access to the following projects and can switch between them with 'oc project <projectname>':
+
+    kubevirt-os-images
+    test-limit-user
+    test-project-nuria
+
+Using project "".
+```
+
+## Registry
+
+```
+[root@bastion ~]# oc config use-context admin
+Switched to context "admin".
+
+[root@bastion ~]# oc get route -n openshift-image-registry -o jsonpath='{.items[0].spec.host}'
+registry.172.26.0.12.nip.io
+
+[root@bastion ~]# podman pull nginx
+```
+
+El registry interno de OKD/OpenShift no acepta contraseñas planas de usuarios (como las definidas en el archivo HTPasswd). Para autenticarse contra el registry se requiere un token de sesión OAuth (o el token de una ServiceAccount)
+
+```
+[root@bastion ~]# podman login -u nuria.ilari -p $(oc whoami -t) --tls-verify=false registry.172.26.0.12.nip.io
+Login Succeeded!
+```
+
+```
+[root@bastion ~]# podman tag docker.io/library/nginx:latest registry.172.26.0.12.nip.io/test-project-nuria/nginx:latest
+[root@bastion ~]# podman push --tls-verify=false registry.172.26.0.12.nip.io/test-project-nuria/nginx:latest
+
+[root@bastion ~]# oc get is -n test-project-nuria
+NAME    IMAGE REPOSITORY                                       TAGS     UPDATED
+nginx   registry.172.26.0.12.nip.io/test-project-nuria/nginx   latest   30 seconds ago
+```
