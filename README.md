@@ -50,3 +50,21 @@
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
 * [Egress IP Address](./OKD/OVN-Kubernetes/egressIPaddress/README.md)
+
+#### :construction: Cosas a estudiar (sacado del documento PDF) :construction:
+
+* [ODF (OpenShift Data Foundation)](https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22) con LSO (Local Storage Operator)
+* I/O Scheduler (elevator=none)
+* Chronyd (Servicio NTP) con MachineConfig (MCO)
+* Pruning
+  * ImagePruner
+  * Automatizar la limpieza de recursos (oc adm prune / oc adm prune builds)
+* KubeletConfig (SystemReserved, Eviction & GarbageCollection)
+* Comando "butane"
+* [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
+* [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
+* ETCD (disc performance)
+
+```
+podman run --volume /var/lib/etcd:/var/lib/etcd:Z quay.io/openshift-scale/etcd-perf:latest
+```
