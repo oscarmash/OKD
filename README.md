@@ -51,7 +51,7 @@
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
 * [Egress IP Address](./OKD/OVN-Kubernetes/egressIPaddress/README.md)
 
-#### :construction: Cosas a estudiar (sacado del documento PDF) :construction:
+#### :warning: Cosas a estudiar (sacado del documento PDF) :warning:
 
 * [ODF (OpenShift Data Foundation)](https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22) con LSO (Local Storage Operator)
 * I/O Scheduler (elevator=none)
