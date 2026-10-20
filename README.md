@@ -59,7 +59,10 @@
 * Pruning
   * ImagePruner
   * Automatizar la limpieza de recursos (oc adm prune / oc adm prune builds)
-* KubeletConfig (SystemReserved, Eviction & GarbageCollection)
+* KubeletConfig
+  * autoSizingReserved: perquè l'equip no col·lapsi de RAM o CPU
+  * Eviction: expulsió de pods per salvar el node
+  * Garbage collection: neteja d'imatges brossa
 * Comando "butane"
 * [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
