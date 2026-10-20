@@ -66,6 +66,7 @@
 * Comando "butane"
 * [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
+* kind: Tuned
 * [Container Security Operator (CSO)](https://docs.redhat.com/en/documentation/red_hat_quay/3/html/red_hat_quay_operator_features/container-security-operator-setup)
 * Building & Automation
   * S2I (Source-to-Image)
