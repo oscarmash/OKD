@@ -183,10 +183,10 @@ En instalaciones manuales (UPI): Las máquinas virtuales se crearon manualmente 
 > Haz este procedimiento nodo por nodo de forma estrictamente secuencial. No elimines un máster hasta que el anterior esté completamente reincorporado y en estado Ready para evitar la pérdida de quórum en etcd.
 
 ```
-[root@bastion ~]# oc adm cordon master1.ilba.cat
-[root@bastion ~]# oc delete node master1.ilba.cat
+[root@bastion ~]# oc adm cordon masterX.ilba.cat
+[root@bastion ~]# oc delete node masterX.ilba.cat
 
-[root@bastion ~]# ssh core@master1.ilba.cat "sudo systemctl restart kubelet"
+[root@bastion ~]# ssh core@masterX.ilba.cat "sudo systemctl restart kubelet"
 
 [root@bastion ~]# oc get csr | grep -i pending
 [root@bastion ~]# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs -r oc adm certificate approve
@@ -195,7 +195,7 @@ En instalaciones manuales (UPI): Las máquinas virtuales se crearon manualmente 
 [root@bastion ~]# oc patch node master2.ilba.cat -p '{"spec":{"providerID":"vsphere://42130237-2b7b-d8a5-9bf8-c94042a78d4f"}}'
 [root@bastion ~]# oc patch node master3.ilba.cat -p '{"spec":{"providerID":"vsphere://4213256d-78e9-7745-9bfd-11b3a8e5a330"}}'
 
-[root@bastion ~]# oc adm uncordon master1.ilba.cat
+[root@bastion ~]# oc adm uncordon masterX.ilba.cat
 
 [root@bastion ~]# oc get nodes -o custom-columns=NAME:.metadata.name,PROVIDERID:.spec.providerID
 NAME               PROVIDERID
