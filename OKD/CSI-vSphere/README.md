@@ -188,8 +188,7 @@ En instalaciones manuales (UPI): Las máquinas virtuales se crearon manualmente 
 
 [root@bastion ~]# ssh core@masterX.ilba.cat "sudo systemctl restart kubelet"
 
-[root@bastion ~]# oc get csr | grep -i pending
-[root@bastion ~]# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs -r oc adm certificate approve
+[root@bastion ~]# oc get csr -o name | xargs oc adm certificate approve
 
 [root@bastion ~]# oc patch node master1.ilba.cat -p '{"spec":{"providerID":"vsphere://421338a5-0a6a-b9b4-b647-3007991cf1d6"}}'
 [root@bastion ~]# oc patch node master2.ilba.cat -p '{"spec":{"providerID":"vsphere://42130237-2b7b-d8a5-9bf8-c94042a78d4f"}}'
