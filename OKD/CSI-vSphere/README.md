@@ -192,6 +192,9 @@ En instalaciones manuales (UPI): Las máquinas virtuales se crearon manualmente 
 [root@bastion ~]# oc get csr -o go-template='{{range .items}}{{if not .status}}{{.metadata.name}}{{"\n"}}{{end}}{{end}}' | xargs -r oc adm certificate approve
 
 [root@bastion ~]# oc patch node master1.ilba.cat -p '{"spec":{"providerID":"vsphere://421338a5-0a6a-b9b4-b647-3007991cf1d6"}}'
+[root@bastion ~]# oc patch node master2.ilba.cat -p '{"spec":{"providerID":"vsphere://42130237-2b7b-d8a5-9bf8-c94042a78d4f"}}'
+[root@bastion ~]# oc patch node master3.ilba.cat -p '{"spec":{"providerID":"vsphere://4213256d-78e9-7745-9bfd-11b3a8e5a330"}}'
+
 [root@bastion ~]# oc adm uncordon master1.ilba.cat
 
 [root@bastion ~]# oc get nodes -o custom-columns=NAME:.metadata.name,PROVIDERID:.spec.providerID
