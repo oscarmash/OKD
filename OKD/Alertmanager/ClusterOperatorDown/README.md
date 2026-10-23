@@ -32,6 +32,8 @@ control-plane-machine-set   4.21.0-okd-scos.9   True        False         False 
 
 ## dns
 
+### Error 1
+
 ```
 [root@bastion ~]#  oc get co dns
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
@@ -59,6 +61,24 @@ node-resolver-tmkrn   1/1     Running   1             68m   10.26.0.12    master
 [root@bastion ~]# oc get co dns
 NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
 dns    4.21.0-okd-scos.9   True        False         False      19h
+```
+
+### Error 2
+
+```
+[root@bastion ~]# oc get co dns
+NAME   VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
+dns    4.21.0-okd-scos.9   True        True          True       8h      DNS default is degraded
+```
+
+```
+[root@bastion ~]# oc -n openshift-dns get pods -o wide
+NAME                  READY   STATUS    RESTARTS       AGE     IP            NODE               NOMINATED NODE   READINESS GATES
+...
+dns-default-wtzbl     1/2     Running   16 (23s ago)   8h      10.130.0.53   master1.ilba.cat   <none>           <none>
+...
+
+[root@bastion ~]# oc -n openshift-dns delete pod dns-default-wtzbl
 ```
 
 ## csi-snapshot-controller
