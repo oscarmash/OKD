@@ -207,6 +207,7 @@ worker3.ilba.cat   vsphere://4213fe82-ab32-aadc-4ab8-bef7f1065164
 worker4.ilba.cat   vsphere://42130906-749a-8468-ccc0-c80de18a26f8
 
 [root@bastion ~]# oc rollout restart deployment/vmware-vsphere-csi-driver-operator -n openshift-cluster-csi-drivers
+[root@bastion ~]# oc rollout restart deployment/cluster-storage-operator -n openshift-cluster-storage-operator
 
 [root@bastion ~]# oc get co storage
 NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSAGE
