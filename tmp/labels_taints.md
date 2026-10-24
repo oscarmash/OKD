@@ -166,7 +166,9 @@ spec:
 [root@bastion ~]# oc get pvc -n openshift-image-registry
 NAME                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
 image-registry-storage   Bound    pvc-278202e3-70ef-4273-b22b-2293f85cf263   100Gi      RWO            thin-csi       <unset>                 5
+```
 
+```
 [root@bastion ~]# oc get pods -n openshift-image-registry -o wide
 NAME                                               READY   STATUS    RESTARTS   AGE    IP            NODE               NOMINATED NODE   READINESS GATES
 ...
