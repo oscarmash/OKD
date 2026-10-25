@@ -1,12 +1,14 @@
-
-
 # Cluster Version Operator (CVO)
 
+- [Cluster Version Operator (CVO)](#cluster-version-operator-cvo)
 - [Validaciones previas](#validaciones-previas)
 - [Actualización](#actualización)
   - [Update minor version (4.21.0-okd-scos.9 to 4.21.0-okd-scos.11)](#update-minor-version-4210-okd-scos9-to-4210-okd-scos11)
   - [Update major version (4.21.0-okd-scos.11 to 4.22.0-okd-scos.10)](#update-major-version-4210-okd-scos11-to-4220-okd-scos10)
-- [Troubleshooting](#troubleshooting)
+    - [Errores](#errores)
+      - [ConfigMap de openshift-monitoring](#configmap-de-openshift-monitoring)
+      - [Reparar el operador image-registry](#reparar-el-operador-image-registry)
+- [troubleshooting](#troubleshooting)
 
 # Validaciones previas
 
@@ -230,6 +232,137 @@ Actual: 4.21.0-okd-scos.11
 [root@bastion ~]# oc adm upgrade --to=4.22.0-okd-scos.10 --force
 ```
 
+### Errores
+
+Los errores son ocasionados por los taints y lables modificados:
+
+```
+[root@bastion ~]# oc get nodes
+NAME               STATUS   ROLES                  AGE   VERSION
+master1.ilba.cat   Ready    control-plane,master   38h   v1.34.6
+master2.ilba.cat   Ready    control-plane,master   39h   v1.34.6
+master3.ilba.cat   Ready    control-plane,master   38h   v1.34.6
+worker1.ilba.cat   Ready    infra                  47h   v1.34.6
+worker2.ilba.cat   Ready    infra                  47h   v1.34.6
+worker3.ilba.cat   Ready    worker                 47h   v1.34.6
+worker4.ilba.cat   Ready    worker                 47h   v1.34.6
+```
+
+Han surgido los siguientes problemas:
+* En la versión 4.22, k8sPrometheusAdapter ya no existe (se sustituyó por metricsServer).
+* Problemas con image-registry
+
+#### ConfigMap de openshift-monitoring
+
+```
+cat << 'EOF' | oc apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+    prometheusK8s:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    alertmanagerMain:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    thanosQuerier:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    prometheusOperator:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    kubeStateMetrics:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    openshiftStateMetrics:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    telemeterClient:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    monitoringPlugin:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+    metricsServer:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: "node-role.kubernetes.io/infra"
+          operator: "Exists"
+          effect: "NoSchedule"
+EOF
+```
+
+```
+oc rollout restart deployment/cluster-monitoring-operator -n openshift-monitoring
+```
+
+#### Reparar el operador image-registry
+
+```
+cat << 'EOF' | oc apply -f -
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  name: cluster
+spec:
+  managementState: Managed
+  replicas: 1
+  rolloutStrategy: Recreate
+  nodeSelector:
+    node-role.kubernetes.io/infra: ""
+  tolerations:
+    - key: "node-role.kubernetes.io/infra"
+      operator: "Exists"
+      effect: "NoSchedule"
+  storage:
+    pvc:
+      claim: "image-registry-storage"
+EOF
+```
+
+```
+oc rollout restart deployment/image-registry -n openshift-image-registry
+oc delete pod -l k8s-app=cluster-version-operator -n openshift-cluster-version
+```
+
 ![Update Release](images/Update.png)
 
 # troubleshooting
@@ -240,4 +373,3 @@ Actual: 4.21.0-okd-scos.11
 [root@bastion ~]# oc describe clusterversion version
 [root@bastion ~]# oc adm upgrade
 ```
-
