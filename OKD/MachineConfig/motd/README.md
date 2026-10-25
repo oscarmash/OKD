@@ -64,7 +64,8 @@ spec:
 [root@bastion ~]# oc get MachineConfig
 NAME                                               GENERATEDBYCONTROLLER                      IGNITIONVERSION   AGE
 ...
-50-all-nodes-motd                                                                             3.2.0             2m15s
+50-master-motd                                                                                3.2.0             3m20s
+50-worker-motd                                                                                3.2.0             3m20s
 ...
 ```
 
