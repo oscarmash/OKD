@@ -58,7 +58,6 @@
 
 * [ODF (OpenShift Data Foundation)](https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22) con LSO (Local Storage Operator)
 * I/O Scheduler (elevator=none)
-* Chronyd (Servicio NTP) con MachineConfig (MCO)
 * Pruning
   * ImagePruner
   * Automatizar la limpieza de recursos (oc adm prune / oc adm prune builds)
