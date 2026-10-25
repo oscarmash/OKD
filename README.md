@@ -25,6 +25,7 @@
 * [Cluster Version Operator (CVO)](./OKD/CVO/README.md)
 
 #### Interfaz y Operaciones
+* [Labels i Taints](./OKD/labels_taints/README.md) :four:
 * [Identity providers](./OKD/identity_providers/README.md) (Usuarios)
 * [Consola Web (GUI)](./OKD/GUI/README.md)
 * [Personalización de errores del Ingress](./OKD/Custom_Ingress/README.md)
