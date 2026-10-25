@@ -61,10 +61,14 @@
 * Pruning
   * ImagePruner
   * Automatizar la limpieza de recursos (oc adm prune / oc adm prune builds)
-* KubeletConfig
-  * autoSizingReserved: perquè l'equip no col·lapsi de RAM o CPU
-  * Eviction: expulsió de pods per salvar el node
-  * Garbage collection: neteja d'imatges brossa
+* Tuning post-install
+  * KubeletConfig (KubeletConfig.md)
+  * I/O de disco y Kernel Tuning (IO_disc_Kernel_Tuning.md)
+  * Descheduler (Descheduler.md)
+* Storage
+  * Rook-Ceph
+  * NooBaa
+  * La GUI nativa de Ceph (Ceph Dashboard) + ConsoleLink en OKD
 * Comando "butane"
 * [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
