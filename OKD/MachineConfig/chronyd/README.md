@@ -80,7 +80,7 @@ Verificación:
 
 ```
 for node in master1 master2 master3 worker1 worker2 worker3 worker4; do
-  echo "==================== $node.ilba.cat ===================="
+  echo "------------------------- $node.ilba.cat -------------------------"
   ssh -o StrictHostKeyChecking=no core@$node "grep -E '^server ' /etc/chrony.conf && chronyc sources"
 done
 ```
