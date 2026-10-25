@@ -184,6 +184,52 @@ worker4.ilba.cat   Ready    worker                 18d   v1.34.6   10.26.0.24   
 
 ## Update major version (4.21.0-okd-scos.11 to 4.22.0-okd-scos.10)
 
+```
+[root@bastion ~]# oc adm upgrade
+Cluster version is 4.21.0-okd-scos.11
+
+Upgradeable=False
+
+  Reason: AdminAckRequired
+  Message: This cluster is Azure or vSphere but lacks a boot image configuration. OCP will automatically opt this cluster into boot image management in 4.22. Please add a configuration to disable boot image updates if this is not desired. See https://docs.redhat.com/en/documentation/openshift_container_platform/4.21/html/machine_configuration/mco-update-boot-images#mco-update-boot-images-disable_machine-configs-configure for more details.
+
+Upstream: https://amd64.origin.releases.ci.openshift.org/graph
+Channel: stable-scos-4
+
+Recommended updates:
+
+  VERSION            IMAGE
+  4.22.0-okd-scos.10 registry.ci.openshift.org/origin/release-scos@sha256:65f272bc84b5e235aa7f3026f08d69f00adebc3fd1228ea7f29e99c5580165af
+  4.22.0-okd-scos.9  registry.ci.openshift.org/origin/release-scos@sha256:ec8d6dc47890317f33f435200bd7b2de7746c84f2c3d3c39d38510fd9aec6833
+  4.22.0-okd-scos.8  registry.ci.openshift.org/origin/release-scos@sha256:65141d97096e2f81b35e212c7fa22c5265c23479130552e2ef25a7012e400cdb
+  4.22.0-okd-scos.7  registry.ci.openshift.org/origin/release-scos@sha256:790386476b24e1a1043aa865c98d2bfeebdd467aa54859f0f53ecd6c487a8036
+  4.22.0-okd-scos.6  registry.ci.openshift.org/origin/release-scos@sha256:f82cfb607a7b66a295f5b727bc53607dc65f8608a6165283b6eedc2435c718fb
+  4.22.0-okd-scos.5  registry.ci.openshift.org/origin/release-scos@sha256:8ea47e23f3de5475aa1161881ccb961d6a084895ecb940d6defb8c24267322ff
+  4.22.0-okd-scos.4  registry.ci.openshift.org/origin/release-scos@sha256:79dea1961581c52b6b1674a318be012c1560acccfdf8954be46b06eaf8ca5307
+  4.22.0-okd-scos.3  registry.ci.openshift.org/origin/release-scos@sha256:8bef53040d3365f52090b205f45f77da9834762740eb5a71db9804e4775a1701
+  4.22.0-okd-scos.2  registry.ci.openshift.org/origin/release-scos@sha256:be199cd105e876d43de410e34ea953b67851cea185c25046e5a93e1084eac6a0
+  4.22.0-okd-scos.1  registry.ci.openshift.org/origin/release-scos@sha256:1e9254d3a0b3351870e14b3c837a28adbdda09b3c21f2f8d19d8c5056d7ea4d1
+  4.22.0-okd-scos.0  registry.ci.openshift.org/origin/release-scos@sha256:018b65c9bd7fb045c7557e46665dacfa979ebe31d112c82b7c551ffe04e7f70f
+```
+
+```
+[root@bastion ~]# oc adm upgrade --to=4.22.0-okd-scos.10
+Requested update to 4.22.0-okd-scos.10
+
+[root@bastion ~]# oc get clusterversion version -o jsonpath='{"Deseada: "}{.spec.desiredUpdate.version}{"\nActual: "}{.status.desired.version}{"\n"}'
+Deseada: 4.22.0-okd-scos.10
+Actual: 4.21.0-okd-scos.11
+```
+
+```
+[root@bastion ~]# oc patch configmap admin-acks -n openshift-config --type merge -p '{"data":{"ack-4.21-boot-image-management":"true","ack-4.22-boot-image-management":"true"}}'
+[root@bastion ~]# oc delete pod -l k8s-app=cluster-version-operator -n openshift-cluster-version
+```
+
+```
+[root@bastion ~]# oc adm upgrade --to=4.22.0-okd-scos.10 --force
+```
+
 ![Update Release](images/Update.png)
 
 # troubleshooting
