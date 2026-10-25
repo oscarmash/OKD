@@ -84,7 +84,15 @@ worker4.ilba.cat   Ready                      worker                 2d    v1.35
 ¿Por qué aparece SchedulingDisabled?: Cuando el MCO detecta una actualización en un MachineConfigPool (como cuando aplicas tu YAML), no modifica las máquinas en caliente ni a lo loco para no tirar las aplicaciones. Sigue un procedimiento de mantenimiento seguro llamado Drain & Reboot
 
 ```
+[root@bastion ~]# ssh core@master2
+=== Nodo gestionado por Machine Config Operator ===
+Last login: Sun Oct 25 12:21:24 2026 from 10.26.0.5
+
 [root@bastion ~]# ssh core@worker1
 === Nodo gestionado por Machine Config Operator ===
-Last login: Fri Aug 28 08:23:17 2026 from 10.26.0.5
+Last login: Sun Oct 25 12:17:33 2026 from 10.26.0.
+
+[root@bastion ~]# ssh core@worker3
+=== Nodo gestionado por Machine Config Operator ===
+Last login: Sun Oct 25 12:13:58 2026 from 10.26.0.5
 ```

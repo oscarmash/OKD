@@ -23,7 +23,7 @@
 * [Añadir nodo al clúster de OKD](./OKD/add_worker/README.md)
 * [Configuración de nodos mediante MachineConfig (MCO)](./OKD/MachineConfig/README.md)
   * [motd](./OKD/MachineConfig/motd/README.md)
-  * chronyd
+  * [chronyd](./OKD/MachineConfig/chronyd/README.md)
 * [Cluster Version Operator (CVO)](./OKD/CVO/README.md) :arrow_left: Update OpenShift
 
 #### Interfaz y Operaciones
