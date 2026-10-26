@@ -1,5 +1,6 @@
 ## Índice
 
+* [¿Qué es Tekton?](#qué-es-tekton)
 * [Instalación de Tekton](#instalación-de-tekton)
 * [Compilación directa con código embebido (Inline Task)](#compilación-directa-con-código-embebido-inline-task)
   * [Creación del proyecto](#creación-del-proyecto)
@@ -16,9 +17,20 @@
 * [Imagen de Buildah](#imagen-de-buildah)
 * [Tekton Dashboard](#tekton-dashboard)
 
-El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
+
+# ¿Qué es Tekton?
+
+Una frase que define a Tekton sería: un **orquestador de tareas de CI/CD nativo de Kubernetes**
+
+Puede realizar las siguientes funciones:
+* Clonar un repositorio Git.
+* Pasar tests unitarios o revisiones de seguridad.
+* Llamar a una herramienta como Buildah para compilar la imagen a partir de un Dockerfile y subirla al registry.
+* Si se lo indicas como último paso, aplicar los manifiestos con oc apply o kubectl para desplegar en el clúster.
 
 # Instalación de Tekton
+
+El catálogo actual (community-operators): Solo indexa los operadores de la comunidad. En ciertas versiones de OKD, la comunidad de Tekton no mantiene publicado un paquete OLM en community-operators. Vamos que que no existe ningún operador de Tekton dentro del catálogo community-operators de OKD :shit:
 
 ```
 [root@bastion ~]# oc get catalogsource -n openshift-marketplace
@@ -39,13 +51,22 @@ tekton-operator-5889466b74-m4dwt           2/2     Running   0          17s
 tekton-operator-webhook-5f68fd688b-j7zg5   1/1     Running   0          17s
 ```
 
-Realizamos la configuración blobal de Tekton:
+Realizamos la configuración blobal de Tekton de limpieza de registros (pruner global). Afecta a todo el cluster:
+
 * *result.disabled.true* Desactiva el componente opcional Tekton Results, el cual se utiliza para almacenar registros y resultados históricos en una base de datos externa.
 * *pruner* Evita que la base de datos de Kubernetes (etcd) se sature con miles de pods y objetos históricos acumulados tras cada compilación.
   * *resources: [pipelinerun, taskrun]* Especifica qué objetos de Tekton debe limpiar automáticamente.
   * *keep: 3* Mantiene únicamente las últimas 3 ejecuciones por Pipeline/Task en cada namespace, borrando automáticamente todas las anteriores.
   * *schedule: "0 8 * * *"* Programa un cronjob interno que ejecuta esta tarea de purga todos los días a las 08:00 AM UTC.
+* *targetNamespace: openshift-pipelines:* este campo no limita las reglas a ese namespace. Únicamente le indica al operador dónde están desplegados los pods del motor y los controladores del plano de control de Tekton.
 
+Si en algún namespace crítico se necesita conservar el historial completo sin que el pruner global lo elimine, se puede excluir etiquetando o anotando ese namespace de la siguiwente manera. O bien se puede colocar esa misma anotación directamente en un PipelineRun específico que se quiera conservar indefinidamente.
+
+```
+oc annotate namespace <PROYECTO> operator.tekton.dev/prune.skip="true"
+```
+
+Ejemplo de pruner global:
 
 ```
 [root@bastion ~]# vim manifest/tekton_config.yaml
@@ -136,7 +157,9 @@ Crear la ServiceAccount para Tekton
 [root@bastion ~]# oc create sa pipeline -n test-build
 ```
 
-Asignamos SCC privileged para Buildah y permisos de edición en el namespace
+Asignamos SCC privileged para Buildah y permisos de edición en el namespace.
+
+Recordar que: Buildah es una herramienta de línea de comandos para construir, modificar y manipular imágenes de contenedores, sin necesidad de ejecutar un demonio. Fué creado inicialmente por RedHat, pero ahora es un proyecto de código abierto que lo mantiene la comunidad.
 
 ```
 [root@bastion ~]# oc adm policy add-scc-to-user privileged -z pipeline -n test-build
@@ -145,7 +168,7 @@ Asignamos SCC privileged para Buildah y permisos de edición en el namespace
 
 ## Creación de la Task
 
-En el recurso *kind: Task* se define cómo se hace el trabajo (los pasos lógicos, la imagen de Buildah, los scripts bash, las variables esperadas). Vamos esta es la plantilla.
+En el recurso *kind: Task*, se define cómo se hace el trabajo (los pasos lógicos, la imagen de Buildah, los scripts bash, las variables esperadas). Vamos esta es la plantilla.
 
 La *Task* se define una sola vez en el clúster y no se toca más, a menos que cambies la lógica del script o la imagen de Buildah.
 
@@ -273,7 +296,7 @@ app-php   registry.172.26.0.12.nip.io/test-build/app-php   v0.0.1   14 seconds a
 ## Desplegar la aplicación
 
 ```
-[[root@bastion ~]# cat manifest/tekton-app-php-deployment.yaml
+[root@bastion ~]# cat manifest/tekton-app-php-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
