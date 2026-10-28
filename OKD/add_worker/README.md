@@ -13,6 +13,7 @@ El proceso requiere registrar la nueva máquina virtual en los servicios de red 
 * [2. Creación y Configuración de la Máquina Virtual en vSphere](#2-creación-y-configuración-de-la-máquina-virtual-en-vsphere)
   * [2.1. Especificaciones de Hardware](#21-especificaciones-de-hardware)
   * [2.2. Habilitación del flag disk.EnableUUID](#22-habilitación-del-flag-diskenableuuid)
+  * [2.3. Deshabilitar el "Secure Boot"](#23-deshabilitar-el-secure-boot)
 * [3. Despliegue del Sistema Operativo RHCOS / SCOS](#3-despliegue-del-sistema-operativo-rhcos--scos)
   * [3.1. Ejecución de coreos-installer con worker.ign](#31-ejecución-de-coreos-installer-con-workerign)
   * [3.2. Primer arranque y monitorización del bootstrap local](#32-primer-arranque-y-monitorización-del-bootstrap-local)
@@ -70,6 +71,17 @@ Para que el aprovisionador CSI de vSphere monte almacenamiento de forma dinámic
   * Key: disk.EnableUUID
   * Value: TRUE
 * Guarda los cambios.
+
+### 2.3. Deshabilitar el "Secure Boot"
+
+Es indispensable deshabilitar el "Secure Boot":
+
+* Accede a la interfaz web de vCenter o ESXi.
+* Apaga la VM.
+* Haz clic derecho sobre la VM ->  Edit Settings (Editar configuración).
+* En la pestaña VM Options (Opciones de máquina virtual).Despliega la sección Boot Options (Opciones de arranque).
+* En el apartado Firmware, asegúrate de que el firmware sea EFI y desmarca la casilla Secure Boot (Arranque seguro)
+* Guarda los cambios y enciende la VM
 
 ## 3. Despliegue del Sistema Operativo RHCOS / SCOS
 

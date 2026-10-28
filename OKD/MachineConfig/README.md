@@ -1,5 +1,8 @@
 # Configuración de nodos mediante MachineConfig (MCO)
 
+Dudas:
+* Con todo esto, entonces no es necesario hacer Hardering en estos S.O. ¿no?
+
 El Machine Config Operator no es un proceso único, sino una orquesta de controladores:
 * MCO (Operador principal): Vigila los manifiestos MachineConfig que aplicas.
 * Machine Config Controller (MCC): Toma todos los MachineConfig que coinciden con un rol (worker, master, infra) y los compila en un único fichero "monolítico" renderizado llamado rendered-worker-<hash>.
