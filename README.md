@@ -74,7 +74,6 @@
   * NooBaa
   * La GUI nativa de Ceph (Ceph Dashboard) + ConsoleLink en OKD
 * Comando "butane"
-* [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
 * Compliance Operator
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
 * kind: Tuned
