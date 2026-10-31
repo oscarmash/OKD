@@ -47,6 +47,10 @@
 * [KubeVirt](./OKD/KubeVirt/README.md)
 * [User Workload Monitoring (UWM)](./OKD/UWM/README.md)
 
+#### Seguridad
+
+* [File Integrity Operator (FIO)](./OKD/seguridad/FIO/README.md)
+
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
 
@@ -71,6 +75,7 @@
   * La GUI nativa de Ceph (Ceph Dashboard) + ConsoleLink en OKD
 * Comando "butane"
 * [File Integrity Operator](https://docs.okd.io/4.22/security/file_integrity_operator/fio-overview.html)
+* Compliance Operator
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
 * kind: Tuned
 * [Container Security Operator (CSO)](https://docs.redhat.com/en/documentation/red_hat_quay/3/html/red_hat_quay_operator_features/container-security-operator-setup)
