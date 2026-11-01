@@ -24,7 +24,7 @@
 * [Configuración de nodos mediante MachineConfig (MCO)](./OKD/MachineConfig/README.md)
   * [motd](./OKD/MachineConfig/motd/README.md)
   * [chronyd](./OKD/MachineConfig/chronyd/README.md)
-* [Cluster Version Operator (CVO)](./OKD/CVO/README.md) :arrow_left: Update OpenShift
+* [Cluster Version Operator (CVO)](./OKD/CVO/README.md) :arrow_left: (Update OpenShift)
 
 #### Interfaz y Operaciones
 * [Labels i Taints](./OKD/labels_taints/README.md) :four:
@@ -50,6 +50,7 @@
 #### Seguridad
 
 * [File Integrity Operator (FIO)](./OKD/seguridad/FIO/README.md)
+* [Compliance Operator](./OKD/seguridad/Compliance_Operator/README.md) (Hardering K8S)
 
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
@@ -74,7 +75,6 @@
   * NooBaa
   * La GUI nativa de Ceph (Ceph Dashboard) + ConsoleLink en OKD
 * Comando "butane"
-* Compliance Operator
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
 * kind: Tuned
 * [Container Security Operator (CSO)](https://docs.redhat.com/en/documentation/red_hat_quay/3/html/red_hat_quay_operator_features/container-security-operator-setup)
