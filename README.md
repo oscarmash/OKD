@@ -62,8 +62,12 @@
 ---
 # Cosas que me faltan a estudiar
 
+* Envoy + kuadrant
 * Red Hat Advanced Cluster Security Operator (RHACS / StackRox)
 * Container Security Operator (CSO)
+* [deschedule](https://docs.okd.io/4.14/nodes/scheduling/nodes-descheduler.html)
+* Loki
+* OADP (OpenShift API for Data Protection)
 * OKD conectado a un servidor LDAP/Active Directory
 * Cifrado de Tráfico Nodo a Nodo (IPsec / WireGuard en OVN-Kubernetes)
 * Configurar redes secundarias en el clúster para separar el tráfico de gestión, almacenamiento o redes industriales del tráfico normal de pods.
