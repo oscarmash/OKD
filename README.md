@@ -59,9 +59,18 @@
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
 * [Egress IP Address](./OKD/OVN-Kubernetes/egressIPaddress/README.md)
 
-# Cosas a estudiar (sacado del documento PDF)
+---
+# Cosas que me faltan a estudiar
 
+* Red Hat Advanced Cluster Security Operator (RHACS / StackRox)
+* Container Security Operator (CSO)
+* OKD conectado a un servidor LDAP/Active Directory
+* Cifrado de Tráfico Nodo a Nodo (IPsec / WireGuard en OVN-Kubernetes)
+* Configurar redes secundarias en el clúster para separar el tráfico de gestión, almacenamiento o redes industriales del tráfico normal de pods.
 * [ODF (OpenShift Data Foundation)](https://docs.redhat.com/en/documentation/red_hat_openshift_data_foundation/4.22) con LSO (Local Storage Operator)
+* Webs a revisar:
+  * [my openshift blog](https://myopenshiftblog.com/setting-up-s3-bucket-storage-on-a-single-node-openshift-sno-cluster/)
+  * [ODK Blog](https://okd.io/blog/)
 * I/O Scheduler (elevator=none)
 * Pruning
   * ImagePruner
