@@ -54,6 +54,11 @@
 * [Compliance Operator](./OKD/seguridad/Compliance_Operator/README.md) (Hardering K8S)
 * [Container Security Operator (CSO)](./OKD/seguridad/CSO/README.md) :shit:
 
+#### Building & Automation
+* [S2I (Source-to-Image)](./OKD/Building_Automation/S2I/README.md)
+* Dockerfile (Containerfile)
+* [Tekton](./OKD/CI_CD/Tekton/README.md)
+
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
 
@@ -91,10 +96,6 @@
 * Comando "butane"
 * [Post-install](https://docs.okd.io/4.22/post_installation_configuration/configuring-private-cluster.html)
 * kind: Tuned
-* Building & Automation
-  * [S2I (Source-to-Image)](./OKD/Building_Automation/S2I/README.md)
-  * Dockerfile (Containerfile)
-  * [Tekton](./OKD/CI_CD/Tekton/README.md)
 * ETCD (disc performance)
 
 ```
