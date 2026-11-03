@@ -66,7 +66,6 @@
 
 * Envoy + kuadrant
 * Red Hat Advanced Cluster Security Operator (RHACS / StackRox)
-* Container Security Operator (CSO)
 * [deschedule](https://docs.okd.io/4.14/nodes/scheduling/nodes-descheduler.html)
 * Loki
 * OADP (OpenShift API for Data Protection)
