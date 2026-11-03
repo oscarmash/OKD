@@ -31,7 +31,8 @@
 * [Identity providers](./OKD/identity_providers/README.md) (Usuarios)
 * [Consola Web (GUI)](./OKD/GUI/README.md)
 * [Personalización de errores del Ingress](./OKD/Custom_Ingress/README.md)
-* [Registry](./OKD/registry/README.md)
+* Registry
+  * [OpenShift Image Registry](./OKD/registry/OpenShiftImageRegistry/README.md)
 * [Insights](./OKD/insights/README.md)
 * [SCC (Security Context Constraints)](./OKD/SCC/README.md)
 * [Thanos](./OKD/Thanos/README.md)

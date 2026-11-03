@@ -1,9 +1,15 @@
-# Registry
+## Índice
 
-- [Registry](#registry)
+- [OpenShift Image Registry](#openshift-image-registry)
+  - [Características del Registry](#características-del-registry)
   - [Añadir storage persistente al Registry](#añadir-storage-persistente-al-registry)
+  - [Configuración del Registry](#configuración-del-registry)
   - [Verificación del registry](#verificación-del-registry)
-  - [Login al Registry](#login-al-registry)
+  - [Login al Registry + subir imagen](#login-al-registry--subir-imagen)
+
+# OpenShift Image Registry
+
+## Características del Registry
 
 Datos del Registry de OpenShift/OKD
 * Por Namespace (Aislamiento por defecto): Toda imagen subida a <registro>/<mi-namespace>/<imagen>:<tag> es privada para dicho proyecto. Otros namespaces no pueden consumirla a menos que se les otorgue el rol system:image-puller explícitamente en ese proyecto.
@@ -31,6 +37,15 @@ spec:
 [root@bastion ~]# oc apply -f manifest/pvc_registry.yaml
 ```
 
+## Configuración del Registry
+
+En una instalación limpia, el registry viene por defecto en _Removed_. El cual le indica que el servicio está parado. Al ponerlo en _Managed_ le estamos diciendo: "toma el control, despliega el pod del registro, monitoriza continuamente su salud y reconcilia su configuración para mantenerlo siempre en ejecución"
+
+Los tres estados posibles del operador son:
+* Removed: apaga el componente y elimina sus despliegues/pods para liberar recursos.
+* Managed: el operador asume el control activo y continuo del despliegue y su salud.
+* Unmanaged: el operador se "desconecta" del componente y deja de reconciliarlo. Permite al administrador editar manualmente los Deployments a bajo nivel sin que el operador revierta los cambios.
+
 ```
 [root@bastion ~]# oc get configs.imageregistry.operator.openshift.io/cluster -o jsonpath='{.spec.managementState}{"\n"}'
 Removed
@@ -39,7 +54,11 @@ Removed
 
 [root@bastion ~]# oc get configs.imageregistry.operator.openshift.io/cluster -o jsonpath='{.spec.managementState}{"\n"}'
 Managed
+```
 
+## Verificación del registry
+
+```
 [root@bastion ~]# oc get pods -n openshift-image-registry
 
 [root@bastion ~]# oc get pods -n openshift-image-registry
@@ -54,8 +73,6 @@ node-ca-9wbp2                                      1/1     Running   12         
 node-ca-bxbz4                                      1/1     Running   13         7d20h
 node-ca-k6f6n                                      1/1     Running   11         7d20h
 ```
-
-## Verificación del registry
 
 Verificaremos que el regstry esté funcionando correctamente. Pero antes hemos de darle acceso:
 
@@ -85,7 +102,7 @@ NAME                    HOST/PORT                     PATH   SERVICES         PO
 custom-registry-route   registry.172.26.0.12.nip.io          image-registry   <all>   reencrypt     None
 ```
 
-## Login al Registry
+## Login al Registry + subir imagen
 
 ```
 [root@bastion ~]# cat /etc/hosts
