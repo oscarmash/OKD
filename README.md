@@ -52,6 +52,7 @@
 
 * [File Integrity Operator (FIO)](./OKD/seguridad/FIO/README.md)
 * [Compliance Operator](./OKD/seguridad/Compliance_Operator/README.md) (Hardering K8S)
+* [Container Security Operator (CSO)](./OKD/seguridad/CSO/README.md) :shit:
 
 #### Almacenamiento
 * [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
