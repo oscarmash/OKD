@@ -19,6 +19,7 @@ Datos del Registry de OpenShift/OKD
 
 El registry de OKD, al ser un despliegue sobre VMware/UPI arranca en estado Removed porque no tiene ningún disco asignado donde guardar las capas de las imágenes, lo que hemos de hacer es asignarle un CSI, para que se puedan guardar los datos:
 
+
 ```
 [root@bastion ~]# vim manifest/pvc_registry.yaml
 apiVersion: v1
