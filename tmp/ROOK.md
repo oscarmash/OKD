@@ -548,7 +548,7 @@ myfs   1           3m3s   Ready
 
 # Acceso al Dashboard
 
-oc create route reencrypt rook-ceph-mgr-dashboard \
+oc create route passthrough rook-ceph-mgr-dashboard \
   --service=rook-ceph-mgr-dashboard \
   --port=https-dashboard \
   -n rook-ceph
@@ -565,17 +565,12 @@ Redirigimos el HTTP al HTTPS:
 NAME                      HOST/PORT                                             PATH   SERVICES                  PORT              TERMINATION          WILDCARD
 rook-ceph-mgr-dashboard   rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat          rook-ceph-mgr-dashboard   https-dashboard   reencrypt/Redirect   None
 
+![default](images/Dashboard_Ceph.png)
+
+# Integración de Dashboard con OKD
 
 
-
-
-
-
-
-
-
-
-cat << 'EOF' > ~/manifests/02-rook/ceph-console-link.yaml
+[root@bastion 02-rook]# vim ceph-console-link.yaml
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
@@ -587,6 +582,40 @@ spec:
   href: https://rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat
   location: ApplicationMenu
   text: Ceph Storage Dashboard
-EOF
 
-oc apply -f ~/manifests/02-rook/ceph-console-link.yaml
+[root@bastion 02-rook]# oc apply -f ceph-console-link.yaml
+
+[root@bastion 02-rook]# oc get consolelink
+NAME                  TEXT                     URL                                                           LOCATION          AGE
+ceph-dashboard-link   Ceph Storage Dashboard   https://rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat   ApplicationMenu   105s
+
+
+![default](images/Dashboard_Ceph_OKD.png)
+
+# Errror Ceph (HEALTH_ERR)
+
+Al desplegar Ceph, nos ha dado el siguiewnte error:
+
+[root@bastion ~]# MGR_POD=$(oc get pod -n rook-ceph -l app=rook-ceph-mgr -o jsonpath='{.items[0].metadata.name}')
+[root@bastion ~]# ADMIN_KEY=$(oc get secret rook-ceph-mon -n rook-ceph -o jsonpath='{.data.ceph-secret}' | base64 -d)
+[root@bastion ~]# MON_HOSTS=$(oc get cm rook-ceph-mon-endpoints -n rook-ceph -o jsonpath='{.data.data}' | sed 's/[a-z]=//g')
+[root@bastion ~]# oc exec -n rook-ceph "$MGR_POD" -c mgr -- ceph -n client.admin --key="$ADMIN_KEY" --mon-host="$MON_HOSTS" health detail
+HEALTH_ERR Module 'prometheus' has failed: not all arguments converted during string formatting
+[ERR] MGR_MODULE_ERROR: Module 'prometheus' has failed: not all arguments converted during string formatting
+    Module 'prometheus' has failed: not all arguments converted during string formatting
+
+Lo hemos solucionado de la siguiente manera:
+
+MGR_POD=$(oc get pod -n rook-ceph -l app=rook-ceph-mgr -o jsonpath='{.items[0].metadata.name}')
+ADMIN_KEY=$(oc get secret rook-ceph-mon -n rook-ceph -o jsonpath='{.data.ceph-secret}' | base64 -d)
+MON_HOSTS=$(oc get cm rook-ceph-mon-endpoints -n rook-ceph -o jsonpath='{.data.data}' | sed 's/[a-z]=//g')
+
+oc patch cephcluster rook-ceph -n rook-ceph --type merge -p '{"spec":{"mgr":{"modules":[{"name":"prometheus","enabled":false}]}}}'
+
+oc exec -n rook-ceph "$MGR_POD" -c mgr -- bash -c "
+  ceph -n client.admin --key='$ADMIN_KEY' --mon-host='$MON_HOSTS' mgr module disable prometheus
+  ceph -n client.admin --key='$ADMIN_KEY' --mon-host='$MON_HOSTS' config rm mgr mgr/prometheus/server_port 2>/dev/null || true
+  ceph -n client.admin --key='$ADMIN_KEY' --mon-host='$MON_HOSTS' crash archive-all
+  ceph -n client.admin --key='$ADMIN_KEY' --mon-host='$MON_HOSTS' health detail
+"
+
