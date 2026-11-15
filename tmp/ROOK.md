@@ -1,0 +1,592 @@
+# Verisones
+
+[root@bastion ~]# oc get clusterversion
+NAME      VERSION            AVAILABLE   PROGRESSING   SINCE   STATUS
+version   5.0.0-okd-scos.6   True        False         19h     Cluster version is 5.0.0-okd-scos.6
+
+[root@bastion ~]# oc get nodes
+NAME                 STATUS   ROLES                  AGE   VERSION
+infra01.ilba.cat     Ready    infra                  21h   v1.36.5
+infra02.ilba.cat     Ready    infra                  21h   v1.36.5
+master01.ilba.cat    Ready    control-plane,master   22h   v1.36.5
+master02.ilba.cat    Ready    control-plane,master   22h   v1.36.5
+master03.ilba.cat    Ready    control-plane,master   22h   v1.36.5
+storage01.ilba.cat   Ready    storage                20h   v1.36.5
+storage02.ilba.cat   Ready    storage                20h   v1.36.5
+storage03.ilba.cat   Ready    storage                20h   v1.36.5
+worker01.ilba.cat    Ready    worker                 20h   v1.36.5
+worker02.ilba.cat    Ready    worker                 20h   v1.36.5
+worker03.ilba.cat    Ready    worker                 20h   v1.36.5
+worker04.ilba.cat    Ready    worker                 20h   v1.36.5
+
+host5:~# lsblk
+NAME                                  MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
+sda                                     8:0    0 447.1G  0 disk
+sdb                                     8:16   0 447.1G  0 disk
+sdc                                     8:32   0 447.1G  0 disk
+...
+
+# Proxmox Disk Passthrough
+
+Obtenemos los identificadores únicos de los discos sda, sdb y sdc que están en el equipo de Proxmox:
+
+host5:~# ls -l /dev/disk/by-id/ | grep -E "sd[a-c]$"
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 ata-INTEL_SSDSC2KG480G8_PHYG002400TT480BGN -> ../../sdc
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 ata-INTEL_SSDSC2KG480G8_PHYG002400UU480BGN -> ../../sdb
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 ata-LK0480GFJSK_BTHC719109UM480MGN -> ../../sda
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 wwn-0x55cd2e414dc30661 -> ../../sda
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 wwn-0x55cd2e415216e03d -> ../../sdc
+lrwxrwxrwx 1 root root  9 Nov 14 08:06 wwn-0x55cd2e415216e060 -> ../../sdb
+
+host5:~# qm list | grep -i storage
+     20031 storage01.ilba.cat   running    16384            120.00 2301
+     20032 storage02.ilba.cat   running    16384            120.00 2384
+     20033 storage03.ilba.cat   running    16834            120.00 2484
+    
+host5:~# qm set 20031 -scsi1 /dev/disk/by-id/ata-LK0480GFJSK_BTHC719109UM480MGN,discard=on,ssd=1,iothread=1
+host5:~# qm set 20032 -scsi1 /dev/disk/by-id/ata-INTEL_SSDSC2KG480G8_PHYG002400UU480BGN,discard=on,ssd=1,iothread=1
+host5:~# qm set 20033 -scsi1 /dev/disk/by-id/ata-INTEL_SSDSC2KG480G8_PHYG002400TT480BGN,discard=on,ssd=1,iothread=1
+
+[root@bastion ~]# oc debug node/storage01.ilba.cat -- chroot /host lsblk -d -o NAME,SIZE,MODEL,ROTA
+NAME   SIZE MODEL         ROTA
+sda  447.1G QEMU HARDDISK    0
+sr0    876M QEMU DVD-ROM     1
+vda    120G                  1
+
+[root@bastion ~]# oc debug node/storage02.ilba.cat -- chroot /host lsblk -d -o NAME,SIZE,MODEL,ROTA
+NAME   SIZE MODEL         ROTA
+sda  447.1G QEMU HARDDISK    0
+sr0    876M QEMU DVD-ROM     1
+vda    120G                  1
+
+[root@bastion ~]# oc debug node/storage03.ilba.cat -- chroot /host lsblk -d -o NAME,SIZE,MODEL,ROTA
+NAME   SIZE MODEL         ROTA
+sda  447.1G QEMU HARDDISK    0
+sr0    876M QEMU DVD-ROM     1
+vda    120G                  1
+
+# Local Storage Operator (LSO)
+
+Es un sistema que escanea los discos locales dev cada nodo y los convierte en objetos de Kubernetes (PersistentVolumes).
+A partir de aquí podemos hacerlo de dos formas:
+* Sin LSO: desplegar Rook directamente sobre tus nodos storage01-03 apuntando al dispositivo bruto /dev/sda (es Rook el que los controla)
+* Con LSO: tiene más control de los discos (tamaño, modelo y estado de cada disco desde oc sin entrar a los nodos)
+
+## Catálogo de redhat-operators
+
+Añadiremos el catálogo de redhat-operators para poder instalar LSO, ya que sinó tendriamos que hacer una instalación desde el repositorio de GitHub.
+
+Podremos conseguir el Token de https://console.redhat.com/openshift/install/pull-secret, pero previavemente nos hemos creado una cuenta gratuita en RedHat Developers. De aquí conseguiremos el fichero _pull-secret.txt_
+
+```
+[root@bastion 02-rook]# chmod 600 pull-secret.txt && chown root:root pull-secret.txt
+```
+
+
+[root@bastion 02-rook]# oc create secret docker-registry redhat-registry-secret \
+  --from-file=.dockerconfigjson=pull-secret.txt \
+  -n openshift-marketplace
+
+[root@bastion 02-rook]# vim openshift-marketplace.yaml
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: redhat-operators
+  namespace: openshift-marketplace
+spec:
+  displayName: Red Hat Operators
+  image: registry.redhat.io/redhat/redhat-operator-index:v4.22
+  publisher: Red Hat
+  sourceType: grpc
+  secrets:
+    - redhat-registry-secret
+  grpcPodConfig:
+    nodeSelector:
+      node-role.kubernetes.io/infra: ""
+    tolerations:
+      - key: "node-role.kubernetes.io/infra"
+        operator: "Exists"
+        effect: "NoSchedule"
+  updateStrategy:
+    registryPoll:
+      interval: 15m
+
+[root@bastion 02-rook]# oc apply -f openshift-marketplace.yaml
+
+[root@bastion 02-rook]# oc -n openshift-marketplace get catalogsource
+NAME                  DISPLAY               TYPE   PUBLISHER   AGE
+community-operators   Community Operators   grpc   Red Hat     26h
+redhat-operators      Red Hat Operators     grpc   Red Hat     18m
+
+[root@bastion 02-rook]# oc get pod -n openshift-marketplace
+NAME                                    READY   STATUS    RESTARTS      AGE
+community-operators-p5tnm               1/1     Running   3             26h
+marketplace-operator-6bc6fb58bc-pv4gc   1/1     Running   4 (26h ago)   26h
+redhat-operators-pqzsw                  1/1     Running   0             2m9s
+
+[root@bastion 01-labels_taints]# oc get packagemanifest -n openshift-marketplace -l catalog=redhat-operators | grep -i local-storage
+local-storage-operator                           Red Hat Operators   26m
+
+## Install LSO
+
+[root@bastion 02-rook]# vim install-lso.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-local-storage
+  labels:
+    openshift.io/cluster-monitoring: "true"
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: local-storage-operatorgroup
+  namespace: openshift-local-storage
+spec:
+  targetNamespaces:
+  - openshift-local-storage
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: local-storage-operator
+  namespace: openshift-local-storage
+spec:
+  channel: stable
+  installPlanApproval: Automatic
+  name: local-storage-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+
+[root@bastion 02-rook]# oc apply -f install-lso.yaml
+
+[root@bastion 02-rook]# oc create secret docker-registry redhat-registry-secret \
+  --from-file=.dockerconfigjson=pull-secret.txt \
+  -n openshift-local-storage
+
+[root@bastion 02-rook]# oc secrets link local-storage-operator redhat-registry-secret --for=pull -n openshift-local-storage
+[root@bastion 02-rook]# oc secrets link default redhat-registry-secret --for=pull -n openshift-local-storage
+[root@bastion 02-rook]# oc delete pod -n openshift-local-storage -l name=local-storage-operator
+
+Pasados unos minutos podremos ver:
+
+[root@bastion 02-rook]# oc -n openshift-local-storage get csv
+NAME                                          DISPLAY         VERSION               RELEASE   REPLACES   PHASE
+local-storage-operator.v4.22.0-202611031655   Local Storage   4.22.0-202611031655                        Succeeded
+
+[root@bastion 02-rook]# oc -n openshift-local-storage get pods
+NAME                                     READY   STATUS    RESTARTS   AGE
+local-storage-operator-88c5676cc-d7zhc   1/1     Running   0          45s
+
+## Creación de recursos
+
+El siguiente paso es crear los recursos LocalVolumeDiscovery y LocalVolumeSet para que LSO escanee storage01, storage02 y storage03, detecte los tres discos sda y cree automáticamente los 3 PersistentVolumes en un StorageClass llamado local-block.
+
+[root@bastion 02-rook]# vim lso-disks.yaml
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeDiscovery
+metadata:
+  name: auto-discover-devices
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: node-role.kubernetes.io/storage
+            operator: Exists
+  tolerations:
+    - key: node-role.kubernetes.io/storage
+      operator: Exists
+      effect: NoSchedule
+    - key: node.ocs.openshift.io/storage
+      operator: Exists
+      effect: NoSchedule
+---
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  name: rook-ceph-local-disks
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: node-role.kubernetes.io/storage
+            operator: Exists
+  tolerations:
+    - key: node-role.kubernetes.io/storage
+      operator: Exists
+      effect: NoSchedule
+    - key: node.ocs.openshift.io/storage
+      operator: Exists
+      effect: NoSchedule
+  storageClassName: local-block
+  volumeMode: Block
+  deviceInclusionSpec:
+    deviceTypes:
+      - disk
+    minSize: 400Gi
+    maxSize: 500Gi
+
+[root@bastion 02-rook]# oc secrets link local-storage-admin redhat-registry-secret --for=pull -n openshift-local-storage
+[root@bastion 02-rook]# oc apply -f lso-disks.yaml
+
+[root@bastion 02-rook]# oc -n openshift-local-storage get pods -o wide
+NAME                                     READY   STATUS    RESTARTS   AGE     IP            NODE                 NOMINATED NODE   READINESS GATES
+diskmaker-discovery-6dns5                2/2     Running   0          21s     10.131.2.16   storage03.ilba.cat   <none>           <none>
+diskmaker-discovery-7pdv8                2/2     Running   0          20s     10.130.2.13   storage01.ilba.cat   <none>           <none>
+diskmaker-discovery-rdm2f                2/2     Running   0          21s     10.129.2.11   storage02.ilba.cat   <none>           <none>
+diskmaker-manager-frs8z                  2/2     Running   0          19s     10.130.2.14   storage01.ilba.cat   <none>           <none>
+diskmaker-manager-pv85w                  2/2     Running   0          19s     10.131.2.17   storage03.ilba.cat   <none>           <none>
+diskmaker-manager-sgw2z                  2/2     Running   0          19s     10.129.2.12   storage02.ilba.cat   <none>           <none>
+local-storage-operator-88c5676cc-d7zhc   1/1     Running   0          6m51s   10.130.2.10   storage01.ilba.cat   <none>           <none>
+
+[root@bastion 02-rook]# oc get localvolumediscoveryresult -n openshift-local-storage
+NAME                                  AGE
+discovery-result-storage01.ilba.cat   29s
+discovery-result-storage02.ilba.cat   29s
+discovery-result-storage03.ilba.cat   29s
+
+[root@bastion 02-rook]# oc get sc local-block
+NAME          PROVISIONER                    RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-block   kubernetes.io/no-provisioner   Delete          WaitForFirstConsumer   false                  2m53s
+
+[root@bastion 02-rook]# oc get pv
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   VOLUMEATTRIBUTESCLASS   REASON   AGE
+local-pv-30d965d0   447Gi      RWO            Delete           Available           local-block    <unset>                          2m23s
+local-pv-710667e6   447Gi      RWO            Delete           Available           local-block    <unset>                          2m23s
+local-pv-db9e4f39   447Gi      RWO            Delete           Available           local-block    <unset>                          2m23s
+
+# Install Rook
+
+En Rook podemos encontrar dos charts:
+* rook-ceph (el operador): despliega los CRDs, permisos RBAC y el pod rook-ceph-operator.
+* rook-ceph-cluster (el clúster): crea el clúster, o se puede hacer con manifiestos
+
+Hemos escogido sólo instalar el rook-ceph (el operador) y montar el cluster con manifiestos (no instalaremos el rook-ceph-cluster)
+
+## Install rook-ceph
+
+Por desgracia Rook no se puede instalar via OLM porque tienen publicado como paquete OLM y lo hemos de hacer via Helm
+
+[root@bastion ~]# helm repo add rook-release https://charts.rook.io/release
+[root@bastion ~]# helm repo update
+
+[root@bastion 02-rook]# helm search repo rook-release/rook-ceph -l | head -n 5
+NAME                            CHART VERSION   APP VERSION     DESCRIPTION
+rook-release/rook-ceph          v1.21.2         v1.21.2         File, Block, and Object Storage Services for yo...
+rook-release/rook-ceph          1.21.2          v1.21.2         File, Block, and Object Storage Services for yo...
+rook-release/rook-ceph          1.21.1          v1.21.1         File, Block, and Object Storage Services for yo...
+rook-release/rook-ceph          1.21.0          v1.21.0         File, Block, and Object Storage Services for yo...
+
+[root@bastion 02-rook]# vim rook-operator-values.yaml
+crds:
+  enabled: true
+
+nodeSelector:
+  node-role.kubernetes.io/infra: ""
+
+tolerations:
+  - key: node-role.kubernetes.io/infra
+    operator: Exists
+    effect: NoSchedule
+
+csi:
+  enableRbdDriver: true
+  enableCephfsDriver: true
+  csiAddons:
+    controller:
+      nodeSelector:
+        node-role.kubernetes.io/infra: ""
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+          effect: NoSchedule
+  provisionerNodeAffinity: node-role.kubernetes.io/infra=
+  provisionerTolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/storage
+      operator: Exists
+      effect: NoSchedule
+    - key: node.ocs.openshift.io/storage
+      operator: Exists
+      effect: NoSchedule
+  pluginTolerations:
+    - key: node-role.kubernetes.io/infra
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/storage
+      operator: Exists
+      effect: NoSchedule
+    - key: node.ocs.openshift.io/storage
+      operator: Exists
+      effect: NoSchedule
+
+
+helm upgrade --install \
+rook-ceph rook-release/rook-ceph \
+--create-namespace \
+--namespace rook-ceph \
+--version=v1.21.2 \
+-f rook-operator-values.yaml
+
+[root@bastion 02-rook]# helm -n rook-ceph ls
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+rook-ceph       rook-ceph       1               2026-11-14 13:52:58.074734303 +0100 CET deployed        rook-ceph-v1.21.2       v1.21.2
+
+[root@bastion 02-rook]# oc -n rook-ceph get pods
+NAME                                           READY   STATUS    RESTARTS   AGE
+ceph-csi-controller-manager-6dc6ff9685-hq9fw   1/1     Running   0          44s
+rook-ceph-operator-65444b79c4-gw4mv            1/1     Running   0          44s
+
+## Desplegar el clúster
+
+[root@bastion 02-rook]# vim ceph-cluster.yaml
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v20.2.0
+    allowUnsupported: false
+  dataDirHostPath: /var/lib/rook
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+  mgr:
+    count: 2
+    allowMultiplePerNode: false
+  dashboard:
+    enabled: true
+    ssl: true
+  placement:
+    all:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/storage
+                  operator: Exists
+      tolerations:
+        - key: node-role.kubernetes.io/storage
+          operator: Exists
+          effect: NoSchedule
+        - key: node.ocs.openshift.io/storage
+          operator: Exists
+          effect: NoSchedule
+  storage:
+    storageClassDeviceSets:
+      - name: sda-local
+        count: 3
+        portable: false
+        tuneDeviceClass: true
+        encrypted: false
+        volumeClaimTemplates:
+          - metadata:
+              name: data
+            spec:
+              resources:
+                requests:
+                  storage: 440Gi
+              storageClassName: local-block
+              volumeMode: Block
+              accessModes:
+                - ReadWriteOnce
+
+[root@bastion 02-rook]# oc apply -f ceph-cluster.yaml
+
+Pasado un rato:
+
+[root@bastion 02-rook]# oc get pods -n rook-ceph -o wide
+NAME                                                           READY   STATUS      RESTARTS   AGE   IP            NODE                 NOMINATED NODE   READINESS GATES
+ceph-csi-controller-manager-5bf67f449c-57jhq                   1/1     Running     0          19m   10.128.2.18   infra02.ilba.cat     <none>           <none>
+rook-ceph-crashcollector-storage01.ilba.cat-5c968ffdb-swcpl    1/1     Running     0          25m   10.130.2.11   storage01.ilba.cat   <none>           <none>
+rook-ceph-crashcollector-storage02.ilba.cat-556ff7dcf7-ccvl7   1/1     Running     0          12m   10.129.2.19   storage02.ilba.cat   <none>           <none>
+rook-ceph-crashcollector-storage03.ilba.cat-66d746685b-kmxgc   1/1     Running     0          24m   10.131.2.18   storage03.ilba.cat   <none>           <none>
+rook-ceph-exporter-storage01.ilba.cat-7768ccf754-phrfg         1/1     Running     0          25m   10.130.2.12   storage01.ilba.cat   <none>           <none>
+rook-ceph-exporter-storage02.ilba.cat-644b4bfcd9-jncjc         1/1     Running     0          12m   10.129.2.20   storage02.ilba.cat   <none>           <none>
+rook-ceph-exporter-storage03.ilba.cat-666cd4f7fb-ljcmn         1/1     Running     0          24m   10.131.2.19   storage03.ilba.cat   <none>           <none>
+rook-ceph-mgr-a-7fb7f4bd69-n9rw2                               2/2     Running     0          25m   10.131.2.11   storage03.ilba.cat   <none>           <none>
+rook-ceph-mgr-b-5d64cc87f6-dg8sk                               2/2     Running     0          25m   10.129.2.13   storage02.ilba.cat   <none>           <none>
+rook-ceph-mon-a-5bd8bc7fdc-vhf9z                               1/1     Running     0          27m   10.129.2.10   storage02.ilba.cat   <none>           <none>
+rook-ceph-mon-b-6f886d9d64-fgpk5                               1/1     Running     0          26m   10.131.2.10   storage03.ilba.cat   <none>           <none>
+rook-ceph-mon-c-78574b757b-xlj5v                               1/1     Running     0          26m   10.130.2.9    storage01.ilba.cat   <none>           <none>
+rook-ceph-operator-6f4d5bb4bf-grxzx                            1/1     Running     0          13m   10.131.0.25   infra01.ilba.cat     <none>           <none>
+rook-ceph-osd-0-6c9478fcd9-6q277                               1/1     Running     0          24m   10.130.2.16   storage01.ilba.cat   <none>           <none>
+rook-ceph-osd-1-566cbc4888-sbx6r                               1/1     Running     0          24m   10.131.2.15   storage03.ilba.cat   <none>           <none>
+rook-ceph-osd-2-85bfd47ddb-s2256                               1/1     Running     0          12m   10.129.2.18   storage02.ilba.cat   <none>           <none>
+rook-ceph-osd-prepare-sda-local-data-0kjldm-nz95g              0/1     Completed   0          24m   10.130.2.15   storage01.ilba.cat   <none>           <none>
+rook-ceph-osd-prepare-sda-local-data-1qpplz-zrd44              0/1     Completed   0          24m   10.131.2.14   storage03.ilba.cat   <none>           <none>
+rook-ceph-osd-prepare-sda-local-data-2ngppj-7dl2h              0/1     Completed   0          12m   10.129.2.17   storage02.ilba.cat   <none>           <none>
+
+[root@bastion 02-rook]# oc get cephcluster -n rook-ceph
+NAME        DATADIRHOSTPATH   MONCOUNT   AGE   PHASE   MESSAGE                        HEALTH      EXTERNAL   FSID
+rook-ceph   /var/lib/rook     3          30m   Ready   Cluster created successfully   HEALTH_OK              219a7698-f9e0-4ec5-aea2-aaae46f6bdc6
+
+
+El siguiente paso es crear los SC para que las aplicaciones puedan consumir volúmenes persistentes dinámicamente:
+* Almacenamiento en bloque (RBD) 
+* Sistema de archivos compartido (CephFS)
+
+[root@bastion 02-rook]# cat ceph-block-sc.yaml
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 2
+    requireSafeReplicaSize: false
+  parameters:
+    min_size: "1"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-ceph-block
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  pool: replicapool
+  imageFormat: "2"
+  imageFeatures: layering
+  csi.storage.k8s.io/provisioner-secret-name: rook-ceph-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-ceph-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-ceph-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+
+
+[root@bastion 02-rook]# cat ceph-filesystem-sc.yaml
+apiVersion: ceph.rook.io/v1
+kind: CephFilesystem
+metadata:
+  name: myfs
+  namespace: rook-ceph
+spec:
+  metadataPool:
+    failureDomain: host
+    replicated:
+      size: 2
+      requireSafeReplicaSize: false
+    parameters:
+      min_size: "1"
+  dataPools:
+    - name: replicated
+      failureDomain: host
+      replicated:
+        size: 2
+        requireSafeReplicaSize: false
+      parameters:
+        min_size: "1"
+  preserveFilesystemOnDelete: true
+  metadataServer:
+    activeCount: 1
+    activeStandby: true
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/storage
+                  operator: Exists
+      tolerations:
+        - key: node-role.kubernetes.io/storage
+          operator: Exists
+          effect: NoSchedule
+        - key: node.ocs.openshift.io/storage
+          operator: Exists
+          effect: NoSchedule
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rook-cephfs
+provisioner: rook-ceph.cephfs.csi.ceph.com
+parameters:
+  clusterID: rook-ceph
+  fsName: myfs
+  pool: myfs-replicated
+  csi.storage.k8s.io/provisioner-secret-name: rook-ceph-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-ceph-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-ceph-csi-cephfs-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+reclaimPolicy: Delete
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+
+[root@bastion 02-rook]# oc apply -f ceph-block-sc.yaml
+[root@bastion 02-rook]# oc apply -f ceph-filesystem-sc.yaml
+
+[root@bastion 02-rook]# oc get sc
+NAME                        PROVISIONER                     RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-block                 kubernetes.io/no-provisioner    Delete          WaitForFirstConsumer   false                  19h
+rook-ceph-block (default)   rook-ceph.rbd.csi.ceph.com      Delete          Immediate              true                   2m43s
+rook-cephfs                 rook-ceph.cephfs.csi.ceph.com   Delete          Immediate              true                   2m38s
+
+[root@bastion 02-rook]# oc -n rook-ceph get cephblockpool
+NAME          PHASE   TYPE         FAILUREDOMAIN   AGE
+replicapool   Ready   Replicated   host            3m3s
+
+[root@bastion 02-rook]# oc -n rook-ceph get cephfilesystem
+NAME   ACTIVEMDS   AGE    PHASE
+myfs   1           3m3s   Ready
+
+# Acceso al Dashboard
+
+oc create route reencrypt rook-ceph-mgr-dashboard \
+  --service=rook-ceph-mgr-dashboard \
+  --port=https-dashboard \
+  -n rook-ceph
+
+Redirigimos el HTTP al HTTPS:
+
+[root@bastion ~]# oc patch route rook-ceph-mgr-dashboard -n rook-ceph --type merge -p '{"spec":{"tls":{"insecureEdgeTerminationPolicy":"Redirect"}}}'
+
+[root@bastion ~]# oc get secret rook-ceph-dashboard-password -n rook-ceph -o jsonpath='{.data.password}' | base64 -d && echo
+8j;sXmnPT$FG1N\j<l@,
+
+
+[root@bastion ~]# oc get route -n rook-ceph
+NAME                      HOST/PORT                                             PATH   SERVICES                  PORT              TERMINATION          WILDCARD
+rook-ceph-mgr-dashboard   rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat          rook-ceph-mgr-dashboard   https-dashboard   reencrypt/Redirect   None
+
+
+
+
+
+
+
+
+
+
+
+cat << 'EOF' > ~/manifests/02-rook/ceph-console-link.yaml
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: ceph-dashboard-link
+spec:
+  applicationMenu:
+    section: Storage
+    imageURL: https://rook.io/images/rook-icon.svg
+  href: https://rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat
+  location: ApplicationMenu
+  text: Ceph Storage Dashboard
+EOF
+
+oc apply -f ~/manifests/02-rook/ceph-console-link.yaml

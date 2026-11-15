@@ -405,6 +405,16 @@ NAME      VERSION             AVAILABLE   PROGRESSING   DEGRADED   SINCE   MESSA
 console   4.21.0-okd-scos.9   True        False         False      43h
 ```
 
+## Marketplace Operator y Cluster Version Operator
+
+Esta parte falta por hacer:
+
+```
+[root@bastion 01-labels_taints]# oc get pod -n openshift-marketplace -o wide
+NAME                                    READY   STATUS    RESTARTS      AGE     IP            NODE                NOMINATED NODE   READINESS GATES
+community-operators-p5tnm               1/1     Running   3             26h     10.129.0.40   master03.ilba.cat   <none>           <none>
+marketplace-operator-6bc6fb58bc-pv4gc   1/1     Running   4 (26h ago)   26h     10.130.0.34   master01.ilba.cat   <none>           <none>
+```
 # Validación final
 
 ```

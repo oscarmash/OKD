@@ -5,5 +5,9 @@
 ```
 
 ```
-[root@bastion ~]# oc get clusteroperators
+[root@bastion ~]# oc get co
+```
+
+```
+[root@bastion ~]# oc -n rook-ceph get cephcluster
 ```
