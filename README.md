@@ -27,7 +27,7 @@
 * [Cluster Version Operator (CVO)](./OKD/CVO/README.md) :arrow_left: (Update OpenShift)
 
 #### Interfaz y Operaciones
-* [Labels i Taints](./OKD/labels_taints/README.md) :four:
+* [Labels i Taints](./OKD/labels_taints/README.md) :three:
 * [Identity providers](./OKD/identity_providers/README.md) (Usuarios)
 * [Consola Web (GUI)](./OKD/GUI/README.md)
 * [Personalización de errores del Ingress](./OKD/Custom_Ingress/README.md)
@@ -64,7 +64,7 @@
 * [Tekton](./OKD/CI_CD/Tekton/README.md)
 
 #### Almacenamiento
-* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :three:
+* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :four:
 
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
