@@ -158,7 +158,7 @@ spec:
   resources:
     requests:
       storage: 100Gi
-  storageClassName: thin-csi
+  storageClassName: rook-ceph-block
 ---
 apiVersion: imageregistry.operator.openshift.io/v1
 kind: Config
@@ -297,12 +297,12 @@ Los siguientes pods han  de estar es el worker1.ilba.cat y el worker2.ilba.cat:
 
 
 ```
-[root@bastion ~]# oc get pods -n openshift-monitoring -o wide | grep -E "alertmanager-main|metrics-server|openshift-state-metrics"
-alertmanager-main-0                                      6/6     Running   0          5m35s   10.129.2.19   worker2.ilba.cat   <none>           <none>
-alertmanager-main-1                                      6/6     Running   0          6m58s   10.128.2.11   worker1.ilba.cat   <none>           <none>
-metrics-server-6c66fb5c49-gv25l                          0/1     Running   0          2m35s   10.128.2.16   worker1.ilba.cat   <none>           <none>
-metrics-server-6c66fb5c49-vnc9h                          0/1     Running   0          2m35s   10.129.2.21   worker2.ilba.cat   <none>           <none>
-openshift-state-metrics-b5c8dc674-lv24v                  3/3     Running   0          3m14s   10.128.2.14   worker1.ilba.cat   <none>           <none>
+[root@bastion 01-labels_taints]# oc get pods -n openshift-monitoring -o wide | grep -E "alertmanager-main|metrics-server|openshift-state-metrics"
+alertmanager-main-0                                     5/6     Running   0          18s     10.131.4.16   infra01.ilba.cat     <none>           <none>
+alertmanager-main-1                                     6/6     Running   0          2m20s   10.128.2.15   infra02.ilba.cat     <none>           <none>
+metrics-server-97b6d8f54-7vr2n                          1/1     Running   0          2m21s   10.128.2.14   infra02.ilba.cat     <none>           <none>
+metrics-server-97b6d8f54-xrpzd                          1/1     Running   0          2m20s   10.131.4.13   infra01.ilba.cat     <none>           <none>
+openshift-state-metrics-7dfc8f5867-b2d6d                3/3     Running   0          2m25s   10.128.2.12   infra02.ilba.cat     <none>           <none>
 ```
 
 ```
