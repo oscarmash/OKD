@@ -1,3 +1,8 @@
+## Índice
+
+- [Instalación de Oxidized](#instalación-de-oxidized)
+- [Integración con LibreNMS](#integración-con-librenms)
+
 # Instalación de Oxidized
 
 ```

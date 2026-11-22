@@ -44,6 +44,7 @@
   * [Tekton](./OKD/CI_CD/Tekton/README.md)
 * Instalar Apps
   * [LibreNMS](./OKD/APPS/LibreNMS/README.md)
+    * [Oxidized](./OKD/APPS/Oxidized/README.md)
   * [MinIO](./OKD/APPS/MinIO/README.md)
 * [KubeVirt](./OKD/KubeVirt/README.md)
 * [User Workload Monitoring (UWM)](./OKD/UWM/README.md)
@@ -64,7 +65,8 @@
 * [Tekton](./OKD/CI_CD/Tekton/README.md)
 
 #### Almacenamiento
-* [Configuración de vSphere CSI Driver](./OKD/CSI-vSphere/README.md) :four:
+* [Configuración de vSphere CSI Driver](./OKD/Storage/CSI-vSphere/README.md) :four: :a:
+* [Configuración de Rook (Ceph)](./OKD/Storage/Rook-Ceph/README.md) :four: :b:
 
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*

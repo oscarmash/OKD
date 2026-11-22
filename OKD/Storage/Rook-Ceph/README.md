@@ -1,9 +1,12 @@
-# Verisones
+# Versiones
 
+```
 [root@bastion ~]# oc get clusterversion
 NAME      VERSION            AVAILABLE   PROGRESSING   SINCE   STATUS
 version   5.0.0-okd-scos.6   True        False         19h     Cluster version is 5.0.0-okd-scos.6
+```
 
+```
 [root@bastion ~]# oc get nodes
 NAME                 STATUS   ROLES                  AGE   VERSION
 infra01.ilba.cat     Ready    infra                  21h   v1.36.5
@@ -18,18 +21,22 @@ worker01.ilba.cat    Ready    worker                 20h   v1.36.5
 worker02.ilba.cat    Ready    worker                 20h   v1.36.5
 worker03.ilba.cat    Ready    worker                 20h   v1.36.5
 worker04.ilba.cat    Ready    worker                 20h   v1.36.5
+```
 
+```
 host5:~# lsblk
 NAME                                  MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
 sda                                     8:0    0 447.1G  0 disk
 sdb                                     8:16   0 447.1G  0 disk
 sdc                                     8:32   0 447.1G  0 disk
 ...
+```
 
 # Proxmox Disk Passthrough
 
 Obtenemos los identificadores únicos de los discos sda, sdb y sdc que están en el equipo de Proxmox:
 
+```
 host5:~# ls -l /dev/disk/by-id/ | grep -E "sd[a-c]$"
 lrwxrwxrwx 1 root root  9 Nov 14 08:06 ata-INTEL_SSDSC2KG480G8_PHYG002400TT480BGN -> ../../sdc
 lrwxrwxrwx 1 root root  9 Nov 14 08:06 ata-INTEL_SSDSC2KG480G8_PHYG002400UU480BGN -> ../../sdb
@@ -64,22 +71,29 @@ NAME   SIZE MODEL         ROTA
 sda  447.1G QEMU HARDDISK    0
 sr0    876M QEMU DVD-ROM     1
 vda    120G                  1
-
+```
 
 # Creación NS
 
+```
 [root@bastion ~]# oc create namespace rook-ceph
 [root@bastion ~]# oc adm policy add-scc-to-group privileged system:serviceaccounts:rook-ceph
+```
 
 # Operador rook-ceph
 
+```
 [root@bastion ~]# dnf install -y helm
 [root@bastion ~]# helm repo add rook-release https://charts.rook.io/release
 [root@bastion ~]# helm repo update
+```
 
+```
 [root@bastion manifests]# mkdir -p ~/manifests/02-rook
 [root@bastion manifests]# cd ~/manifests/02-rook
+```
 
+```
 [root@bastion 02-rook]# vim rook-operator-values.yaml
 crds:
   enabled: true
@@ -118,18 +132,24 @@ csi:
       effect: NoSchedule
 
 hostpathRequiresPrivileged: true
+```
 
+```
 [root@bastion 02-rook]# helm search repo rook-release/rook-ceph
 NAME                            CHART VERSION   APP VERSION     DESCRIPTION
 rook-release/rook-ceph          v1.21.2         v1.21.2         File, Block, and Object Storage Services for yo...
 rook-release/rook-ceph-cluster  1.21.2          v1.21.2         Manages a single Ceph cluster namespace for Rook
+```
 
+```
 helm upgrade --install \
 rook-ceph rook-release/rook-ceph \
 --namespace rook-ceph \
 --version v1.21.2 \
 -f rook-operator-values.yaml
+```
 
+```
 [root@bastion 02-rook]# oc get csr -o name | xargs oc adm certificate approve
 
 [root@bastion 02-rook]# helm ls -n rook-ceph
@@ -140,9 +160,11 @@ rook-ceph       rook-ceph       1               2026-11-21 09:04:20.64954156 +01
 NAME                                           READY   STATUS    RESTARTS   AGE
 ceph-csi-controller-manager-6dc6ff9685-8c92l   1/1     Running   0          3m11s
 rook-ceph-operator-56f9ff5b45-kbkks            1/1     Running   0          3m11s
+```
 
 # Clúster rook-ceph-cluster
 
+```
 [root@bastion 02-rook]# vim rook-cluster-values.yaml
 operatorNamespace: rook-ceph
 
@@ -285,28 +307,17 @@ cephFileSystems:
         csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
 
 cephObjectStores: []
+```
 
-
-
-
-
-
-
-
-
+```
 helm upgrade --install \
 rook-ceph-cluster rook-release/rook-ceph-cluster \
 --namespace rook-ceph \
 --version v1.21.2 \
 -f rook-cluster-values.yaml
+```
 
-
-
-
-
-
-
-
+```
 [root@bastion 02-rook]# helm ls -n rook-ceph
 NAME                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                           APP VERSION
 rook-ceph               rook-ceph       1               2026-11-21 09:04:20.64954156 +0100 CET  deployed        rook-ceph-v1.21.2               v1.21.2
@@ -354,27 +365,33 @@ rook-ceph-tools-748887bfd7-m6jkk                               1/1     Running  
 NAME                        PROVISIONER                     RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
 rook-ceph-block (default)   rook-ceph.rbd.csi.ceph.com      Delete          Immediate           true                   50m
 rook-cephfs                 rook-ceph.cephfs.csi.ceph.com   Delete          Immediate           true                   50m
+```
 
 # Errores al reiniciar
 
+```
 [root@bastion ~]# oc -n rook-ceph get cephcluster
 NAME        DATADIRHOSTPATH   MONCOUNT   AGE   PHASE   MESSAGE                        HEALTH       EXTERNAL   FSID
 rook-ceph   /var/lib/rook     3          53m   Ready   Cluster created successfully   HEALTH_ERR              68ab4388-2235-4785-a49f-608749d6707b
 
 [root@bastion ~]# oc -n rook-ceph exec deploy/rook-ceph-tools -- ceph status
 [root@bastion ~]# oc -n rook-ceph exec deploy/rook-ceph-tools -- ceph health detail
+```
 
 El problema es este: _Module 'prometheus' has failed: not all arguments converted during string formatting_
 
+```
 [root@bastion ~]# oc -n rook-ceph exec deploy/rook-ceph-tools -- ceph mgr module disable prometheus
 [root@bastion ~]# oc -n rook-ceph exec deploy/rook-ceph-tools -- ceph crash archive-all
 
 [root@bastion ~]# oc -n rook-ceph get cephcluster
 NAME        DATADIRHOSTPATH   MONCOUNT   AGE   PHASE   MESSAGE                        HEALTH      EXTERNAL   FSID
 rook-ceph   /var/lib/rook     3          57m   Ready   Cluster created successfully   HEALTH_OK              68ab4388-2235-4785-a49f-608749d6707b
+```
 
 # Validación
 
+```
 [root@bastion ~]# cd manifests/02-rook/
 [root@bastion 02-rook]# vim test-ceph.yaml
 apiVersion: v1
@@ -431,7 +448,9 @@ spec:
     - name: vol-cephfs
       persistentVolumeClaim:
         claimName: test-pvc-cephfs
+```
 
+```
 [root@bastion 02-rook]# oc new-project test-ceph
 [root@bastion 02-rook]# oc apply -f test-ceph.yaml
 
@@ -456,10 +475,11 @@ CephFS OK - Sat Nov 21 09:48:59 UTC 2026
 
 [root@bastion 02-rook]# oc delete -f test-ceph.yaml
 [root@bastion 02-rook]# oc delete project test-ceph
+```
 
 # Errores finales
 
-
+```
 cat << 'EOF' | oc apply -f -
 apiVersion: v1
 kind: ServiceAccount
@@ -528,11 +548,15 @@ roleRef:
   name: rook-ceph-csi-provisioner-role
   apiGroup: rbac.authorization.k8s.io
 EOF
+```
 
+```
 for sa in rbd-ctrlplugin-sa rbd-nodeplugin-sa cephfs-ctrlplugin-sa cephfs-nodeplugin-sa; do
   oc adm policy add-scc-to-user privileged -z "$sa" -n rook-ceph
 done
+```
 
+```
 cat << 'EOF' | oc apply -f -
 apiVersion: csi.ceph.io/v1
 kind: OperatorConfig
@@ -570,28 +594,32 @@ metadata:
   name: rook-ceph.cephfs.csi.ceph.com
   namespace: rook-ceph
 EOF
-
+```
 
 # Acceso al Dashboard
 
+```
 oc create route edge rook-ceph-mgr-dashboard \
   --service=rook-ceph-mgr-dashboard \
   --port=http-dashboard \
   --insecure-policy=Redirect \
   -n rook-ceph
+```
 
+```
 [root@bastion ~]# oc get secret rook-ceph-dashboard-password -n rook-ceph -o jsonpath='{.data.password}' | base64 -d && echo
 F@G0W[Nb0O^`#</.775`
 
 [root@bastion ~]# oc get route -n rook-ceph
 NAME                      HOST/PORT                                             PATH   SERVICES                  PORT             TERMINATION     WILDCARD
 rook-ceph-mgr-dashboard   rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat          rook-ceph-mgr-dashboard   http-dashboard   edge/Redirect   None
+```
 
 ![default](images/Dashboard_Ceph.png)
 
 # Integración de Dashboard con OKD
 
-
+```
 [root@bastion 02-rook]# vim ceph-console-link.yaml
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
@@ -604,12 +632,14 @@ spec:
   href: https://rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat
   location: ApplicationMenu
   text: Ceph Storage Dashboard
+```
 
+```
 [root@bastion 02-rook]# oc apply -f ceph-console-link.yaml
 
 [root@bastion 02-rook]# oc get consolelink
 NAME                  TEXT                     URL                                                           LOCATION          AGE
 ceph-dashboard-link   Ceph Storage Dashboard   https://rook-ceph-mgr-dashboard-rook-ceph.apps.okd.ilba.cat   ApplicationMenu   105s
-
+```
 
 ![default](images/Dashboard_Ceph_OKD.png)

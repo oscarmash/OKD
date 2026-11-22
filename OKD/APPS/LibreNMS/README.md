@@ -1,3 +1,12 @@
+## Índice
+
+- [LibreNMS](#librenms)
+  - [Instalación](#instalación)
+  - [Validaciones](#validaciones)
+- [Añadir equipos](#añadir-equipos)
+  - [Host](#host)
+  - [VMs de Proxmox](#vms-de-proxmox)
+
 # LibreNMS
 
 ## Instalación
