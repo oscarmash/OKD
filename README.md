@@ -65,8 +65,8 @@
 * [Tekton](./OKD/CI_CD/Tekton/README.md)
 
 #### Almacenamiento
-* [Configuración de vSphere CSI Driver](./OKD/Storage/CSI-vSphere/README.md) :four: :a:
-* [Configuración de Rook (Ceph)](./OKD/Storage/Rook-Ceph/README.md) :four: :b:
+* [Configuración de vSphere CSI Driver](./OKD/Storage/CSI-vSphere/README.md) :four: :one:
+* [Configuración de Rook (Ceph)](./OKD/Storage/Rook-Ceph/README.md) :four: :two:
 
 #### Redes (OVN-Kubernetes)
 * :construction: [NetworkPolicies](./OKD/OVN-Kubernetes/NetworkPolicy/README.md) *(En construcción)*
